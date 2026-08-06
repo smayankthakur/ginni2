@@ -1,6 +1,7 @@
 import React from "react";
 import { useApp } from "../context/AppContext";
 import { QUESTIONS } from "../data/questions";
+import { Menu, X } from "lucide-react";
 
 const QuestionSidebar = ({ isOpen, onClose }) => {
   const { state, selectQuestion } = useApp();
@@ -42,7 +43,7 @@ const QuestionSidebar = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className="lg:hidden p-2 text-muted-foreground hover:text-gold transition-colors"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
           </div>

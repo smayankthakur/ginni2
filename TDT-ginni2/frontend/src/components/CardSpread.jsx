@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { motion } from "framer-motion";
 import { buildFullDeck } from "../data/questions";
 import { shuffleDeck } from "../utils/tarotDeck";
+import TarotCard from "./TarotCard";
+
+const CARD_WIDTH = 88;
+const CARD_HEIGHT = CARD_WIDTH * 1.4;
+const OVERLAP = 28;
 
 const CardBack = () => (
   <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black border border-gold/35 rounded-xl flex items-center justify-center relative overflow-hidden shadow-lg">
@@ -11,13 +16,9 @@ const CardBack = () => (
   </div>
 );
 
-const CARD_WIDTH = 88;
-const CARD_HEIGHT = CARD_WIDTH * 1.4;
-const OVERLAP = 28;
-
 const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
   const [deck, setDeck] = useState([]);
-  const [selectedCards, setSelectedCards] = useState([]);
+  const [flippedIds, setFlippedIds] = useState(new Set());
   const [hoveredId, setHoveredId] = useState(null);
   const [isFrozen, setIsFrozen] = useState(false);
   const containerRef = useRef(null);
@@ -31,27 +32,33 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
       reversed: Math.random() < 0.5
     }));
     setDeck(withIds);
-    setSelectedCards([]);
+    setFlippedIds(new Set());
     setIsFrozen(false);
   }, [deckProp]);
 
-  const remaining = useMemo(() => Math.max(0, requiredCards - selectedCards.length), [requiredCards, selectedCards.length]);
+  const flippedCount = flippedIds.size;
+  const remaining = Math.max(0, requiredCards - flippedCount);
+  const isComplete = flippedCount >= requiredCards;
 
-  const handleCardClick = useCallback((card) => {
-    if (isFrozen) return;
-    if (selectedCards.find((c) => c.id === card.id)) return;
-    if (selectedCards.length >= requiredCards) return;
+  const handleCardClick = useCallback(
+    (card) => {
+      if (isFrozen) return;
+      if (flippedIds.has(card.id)) return;
 
-    const newSelected = [...selectedCards, { ...card, selectedAt: Date.now() }];
-    setSelectedCards(newSelected);
+      const newFlipped = new Set(flippedIds);
+      newFlipped.add(card.id);
+      setFlippedIds(newFlipped);
 
-    if (newSelected.length >= requiredCards) {
-      setIsFrozen(true);
-      setTimeout(() => {
-        onCardsChosen?.(newSelected);
-      }, 1000);
-    }
-  }, [isFrozen, selectedCards, requiredCards, onCardsChosen]);
+      if (newFlipped.size >= requiredCards) {
+        setIsFrozen(true);
+        const chosenCards = deck.filter((c) => newFlipped.has(c.id));
+        setTimeout(() => {
+          onCardsChosen?.(chosenCards);
+        }, 800);
+      }
+    },
+    [flippedIds, isFrozen, requiredCards, deck, onCardsChosen]
+  );
 
   const totalWidth = deck.length * (CARD_WIDTH - OVERLAP);
 
@@ -62,9 +69,9 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
           Apne cards chuniye — Choose {requiredCards} card{requiredCards > 1 ? "s" : ""} that call to you
         </h3>
         <p className="text-muted-foreground text-sm">
-          {remaining > 0
-            ? `${remaining} remaining`
-            : "✦ Cards locked in — preparing your reading..."}
+          {isComplete
+            ? "✦ Cards locked in — preparing your reading..."
+            : `${flippedCount} flipped — ${remaining} remaining`}
         </p>
       </div>
 
@@ -82,9 +89,9 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
             }}
           >
             {deck.map((card, index) => {
-              const isSelected = selectedCards.some((c) => c.id === card.id);
+              const isFlipped = flippedIds.has(card.id);
               const isHovered = hoveredId === card.id && !isFrozen;
-              const canSelect = !isSelected && !isFrozen;
+              const canFlip = !isFlipped && !isFrozen;
               const waveOffset = Math.sin(index * 0.22) * 14;
 
               return (
@@ -92,10 +99,10 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
                   key={card.id}
                   initial={{ opacity: 0, y: 40, scale: 0.9 }}
                   animate={{
-                    opacity: isFrozen && !isSelected ? 0.45 : 1,
+                    opacity: isFrozen && !isFlipped ? 0.45 : 1,
                     y: waveOffset,
-                    scale: isSelected ? 1.08 : 1,
-                    zIndex: isSelected ? 30 : isHovered ? 100 : index
+                    scale: isFlipped ? 1.08 : 1,
+                    zIndex: isFlipped ? 30 : isHovered ? 100 : index
                   }}
                   transition={{
                     type: "spring",
@@ -110,14 +117,14 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
                     width: CARD_WIDTH,
                     height: CARD_HEIGHT
                   }}
-                  onMouseEnter={() => canSelect && setHoveredId(card.id)}
+                  onMouseEnter={() => canFlip && setHoveredId(card.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  onClick={() => canSelect && handleCardClick(card)}
+                  onClick={() => canFlip && handleCardClick(card)}
                 >
                   <motion.div
                     animate={{
                       y: isHovered ? -15 : 0,
-                      filter: isSelected
+                      filter: isFlipped
                         ? "none"
                         : isHovered
                           ? "brightness(1.25) drop-shadow(0 0 16px rgba(246, 206, 85, 0.6)) drop-shadow(0 0 32px rgba(187, 103, 228, 0.4))"
@@ -126,27 +133,31 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
                     transition={{ type: "spring", damping: 16, stiffness: 220 }}
                     className={`
                       relative rounded-xl cursor-pointer select-none
-                      ${isFrozen && !isSelected ? "cursor-not-allowed" : ""}
-                      ${isSelected ? "ring-2 ring-gold/80 ring-offset-2 ring-offset-black" : ""}
+                      ${isFrozen && !isFlipped ? "cursor-not-allowed" : ""}
+                      ${isFlipped ? "ring-2 ring-gold/80 ring-offset-2 ring-offset-black" : ""}
                     `}
                     style={{
                       width: CARD_WIDTH,
                       height: CARD_HEIGHT
                     }}
                   >
-                    <CardBack />
+                    {isFlipped ? (
+                      <TarotCard card={card} isRevealed={true} />
+                    ) : (
+                      <CardBack />
+                    )}
 
-                    {isSelected && (
+                    {isFlipped && (
                       <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-gold text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold shadow-gold z-10"
                       >
-                        {selectedCards.findIndex((c) => c.id === card.id) + 1}
+                        {flippedIds.size}
                       </motion.div>
                     )}
 
-                    {isFrozen && isSelected && (
+                    {isFrozen && isFlipped && (
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

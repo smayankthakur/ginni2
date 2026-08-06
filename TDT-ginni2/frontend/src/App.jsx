@@ -7,14 +7,16 @@ import CardSpread from "./components/CardSpread";
 import ReadingOutputChat from "./components/ReadingOutputChat";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { fetchReadingFromKB } from "./utils/kbRouter";
+import { Menu, MessageSquare } from "lucide-react";
 
 function App() {
-  const { state, setReadingResult, setDrawnCards, setReading, setCurrentQuestion, setAppStatus, addChatHistoryEntry } = useApp();
+  const { state, setReadingResult, setDrawnCards, setReading, setCurrentQuestion, setAppStatus, addChatHistoryEntry, addChatMessage } = useApp();
   const { hasOnboarded, selectedQuestion, readingResult, isReading, language, currentAppStatus, currentQuestion, chatHistory, drawnCards } = state;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -60,10 +62,24 @@ function App() {
       setCurrentQuestion(question);
       setCurrentQuestionNumber(null);
     }
-    setAppStatus("selecting_cards");
+    setAppStatus("connecting");
+    setIsConnecting(true);
     setDrawnCards([]);
     setReadingResult(null);
-  }, [setCurrentQuestion, setAppStatus, setDrawnCards, setReadingResult]);
+
+    const welcomeMsg = {
+      id: Date.now(),
+      type: "welcome",
+      text: `I'm connecting to your energy to answer: ${typeof question === "object" ? question.label : question}...`,
+      timestamp: Date.now()
+    };
+    addChatMessage(welcomeMsg);
+
+    setTimeout(() => {
+      setIsConnecting(false);
+      setAppStatus("selecting_cards");
+    }, 2000);
+  }, [setCurrentQuestion, setAppStatus, setDrawnCards, setReadingResult, addChatMessage]);
 
   const handleCardsChosen = useCallback((cards) => {
     setDrawnCards(cards);
@@ -91,8 +107,8 @@ function App() {
     return <Onboarding />;
   }
 
-  const showCardSpread = currentAppStatus === "selecting_cards" || !selectedQuestion;
-  const showChat = currentAppStatus === "chatting" || !!readingResult || chatHistory.length > 0;
+  const showCardSpread = currentAppStatus === "selecting_cards" || currentAppStatus === "connecting" || (!selectedQuestion && currentAppStatus === "idle");
+  const showChat = currentAppStatus === "chatting" || !!readingResult || chatHistory.length > 0 || isConnecting;
 
   return (
     <div className="h-screen flex flex-col bg-cosmic overflow-hidden">
@@ -110,12 +126,10 @@ function App() {
       <header className="lg:hidden shrink-0 z-30 bg-deepSlate/90 backdrop-blur-xl border-b border-gold/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gold hover:bg-gold/10 rounded-xl transition-colors"
+            onClick={() => setChatOpen(!chatOpen)}
+            className="p-2 text-gold hover:bg-gold/10 rounded-xl transition-colors relative"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <MessageSquare size={24} />
           </button>
           <span className="text-xl">🔮</span>
           <span className="text-gold font-bold">Ginni Ki Baatein</span>
@@ -145,14 +159,44 @@ function App() {
             </div>
           </div>
 
-          <div className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ${showCardSpread ? "flex-1" : "hidden lg:flex"}`}>
-            <ErrorBoundary>
-              <CardSpread
-                requiredCards={selectedQuestion?.cardCount || 1}
-                onCardsChosen={handleCardsChosen}
-              />
-            </ErrorBoundary>
-          </div>
+          <AnimatePresence mode="wait">
+            {isConnecting ? (
+              <motion.div
+                key="connecting"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="flex-1 flex flex-col items-center justify-center p-8"
+              >
+                <div className="text-center space-y-4">
+                  <div className="text-6xl animate-gx-float">🔮</div>
+                  <p className="text-gold text-lg font-medium">I'm connecting to your energy...</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="card-spread"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className={`flex-1 flex flex-col min-w-0 ${showCardSpread ? "flex-1" : "hidden lg:flex"}`}
+              >
+                <ErrorBoundary>
+                  <CardSpread
+                    requiredCards={selectedQuestion?.cardCount || 1}
+                    onCardsChosen={handleCardsChosen}
+                  />
+                </ErrorBoundary>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {showCardSpread && showChat && (
             <div className="hidden lg:block shrink-0 p-4 border-t border-gold/10">

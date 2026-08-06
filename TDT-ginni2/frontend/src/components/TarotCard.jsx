@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { TRUMPS } from "../utils/tarotDeck";
 
 const SUIT_SYMBOLS = {
@@ -47,7 +48,7 @@ const SUIT_BORDERS = {
   Pentacles: "border-green-400/50"
 };
 
-function TarotCard({ card, isRevealed, isDrawing, flipDelay }) {
+function TarotCard({ card, isRevealed }) {
   if (!card) return null;
 
   const { name, type, suit, rank, reversed } = card;
@@ -65,22 +66,13 @@ function TarotCard({ card, isRevealed, isDrawing, flipDelay }) {
     borderColor = SUIT_BORDERS[suit] || "border-gold/35";
   }
 
-  const rotateY = isRevealed ? 180 : 0;
-  const extraRotation = reversed && isRevealed ? 180 : 0;
-
   return (
-    <div
-      className="relative w-40 h-60 sm:w-48 sm:h-72"
-      style={{
-        animationDelay: isDrawing ? `${flipDelay}ms` : "0ms"
-      }}
-    >
-      <div
-        className="relative w-full h-full transition-all duration-700"
-        style={{
-          transformStyle: "preserve-3d",
-          transform: `rotateY(${rotateY}deg) rotate(${extraRotation}deg)`
-        }}
+    <div className="relative w-full h-full">
+      <motion.div
+        className="relative w-full h-full"
+        style={{ transformStyle: "preserve-3d" }}
+        animate={{ rotateY: isRevealed ? 180 : 0 }}
+        transition={{ duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
       >
         <div
           className="absolute inset-0 w-full h-full card-back flex items-center justify-center"
@@ -132,7 +124,7 @@ function TarotCard({ card, isRevealed, isDrawing, flipDelay }) {
             {reversed ? "REV" : "UPR"}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
