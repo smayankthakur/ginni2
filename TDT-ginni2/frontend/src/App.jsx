@@ -6,7 +6,7 @@ import QuestionSidebar from "./components/QuestionSidebar";
 import CardSpread from "./components/CardSpread";
 import ReadingOutputChat from "./components/ReadingOutputChat";
 import ErrorBoundary from "./components/ErrorBoundary";
-import axios from "axios";
+import { fetchReadingFromKB } from "./utils/kbRouter";
 
 function App() {
   const { state, setReadingResult, setDrawnCards, setReading, setCurrentQuestion, setAppStatus, addChatHistoryEntry } = useApp();
@@ -35,11 +35,8 @@ function App() {
     const fetchReading = async () => {
       if (!selectedQuestion) return;
       try {
-        const response = await axios.post("/api/reading", {
-          questionNumber: selectedQuestion.number,
-          language
-        });
-        setReadingResult(response.data);
+        const result = await fetchReadingFromKB(selectedQuestion.number, drawnCards, language);
+        setReadingResult(result);
       } catch (err) {
         console.error("Failed to fetch reading:", err);
         setReadingResult({
@@ -53,7 +50,7 @@ function App() {
 
     const timer = setTimeout(fetchReading, 800);
     return () => clearTimeout(timer);
-  }, [isReading, readingResult, selectedQuestion, language, setReadingResult]);
+  }, [isReading, readingResult, selectedQuestion, language, drawnCards, setReadingResult]);
 
   const handleStartNewQuestion = useCallback((question) => {
     if (typeof question === "object" && question !== null) {

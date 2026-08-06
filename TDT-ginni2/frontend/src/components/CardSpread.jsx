@@ -120,7 +120,7 @@ const CardSpread = ({ requiredCards = 1, deck: deckProp, onCardsChosen }) => {
                       filter: isSelected
                         ? "none"
                         : isHovered
-                          ? "brightness(1.25) drop-shadow(0 0 16px hsl(45 90% 65% / 0.6)) drop-shadow(0 0 32px hsl(280 70% 65% / 0.4))"
+                          ? "brightness(1.25) drop-shadow(0 0 16px rgba(246, 206, 85, 0.6)) drop-shadow(0 0 32px rgba(187, 103, 228, 0.4))"
                           : "none"
                     }}
                     transition={{ type: "spring", damping: 16, stiffness: 220 }}

@@ -136,7 +136,7 @@ const QuestionBasedCardSpread = ({ currentQuestion, onSelectionComplete }) => {
                       filter: isSelected
                         ? "none"
                         : isHovered
-                          ? "brightness(1.2) drop-shadow(0 0 12px hsl(45 90% 65% / 0.5)) drop-shadow(0 0 24px hsl(280 70% 65% / 0.3))"
+                          ? "brightness(1.2) drop-shadow(0 0 12px rgba(246, 206, 85, 0.5)) drop-shadow(0 0 24px rgba(187, 103, 228, 0.3))"
                           : "none"
                     }}
                     transition={{ type: "spring", damping: 16, stiffness: 220 }}

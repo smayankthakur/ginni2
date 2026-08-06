@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import TarotCard from "./TarotCard";
 import { QUESTIONS, shuffleAndDraw } from "../data/questions";
+import { fetchReadingFromKB } from "../utils/kbRouter";
 
 const CardDrawing = () => {
   const { questionId } = useParams();
@@ -14,6 +14,11 @@ const CardDrawing = () => {
   const [error, setError] = useState(null);
   const timeoutIdsRef = useRef([]);
   const mountedRef = useRef(true);
+  const drawnCardsRef = useRef(drawnCards);
+
+  useEffect(() => {
+    drawnCardsRef.current = drawnCards;
+  });
 
   useEffect(() => {
     return () => {
@@ -69,15 +74,13 @@ const CardDrawing = () => {
   const fetchReading = useCallback(async () => {
     try {
       setPhase("loading");
-      const response = await axios.post("/api/reading", {
-        questionNumber: parseInt(questionId)
-      });
+      const result = await fetchReadingFromKB(parseInt(questionId), drawnCardsRef.current);
       if (!mountedRef.current) return;
-      setReadingResult(response.data);
+      setReadingResult(result);
       setPhase("complete");
     } catch (err) {
       if (!mountedRef.current) return;
-      setError(err.response?.data?.error || err.message || "Failed to fetch reading");
+      setError(err.message || "Failed to fetch reading");
       setPhase("complete");
     }
   }, [questionId]);
