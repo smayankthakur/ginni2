@@ -7,7 +7,6 @@ import CardSpread from "./components/CardSpread";
 import ReadingOutputChat from "./components/ReadingOutputChat";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { fetchReadingFromKB } from "./utils/kbRouter";
-import { Menu, MessageSquare } from "lucide-react";
 
 function App() {
   const { state, setReadingResult, setDrawnCards, setReading, setCurrentQuestion, setAppStatus, addChatHistoryEntry, addChatMessage } = useApp();
@@ -126,10 +125,12 @@ function App() {
       <header className="lg:hidden shrink-0 z-30 bg-deepSlate/90 backdrop-blur-xl border-b border-gold/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setChatOpen(!chatOpen)}
-            className="p-2 text-gold hover:bg-gold/10 rounded-xl transition-colors relative"
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 text-gold hover:bg-gold/10 rounded-xl transition-colors"
           >
-            <MessageSquare size={24} />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
           <span className="text-xl">🔮</span>
           <span className="text-gold font-bold">Ginni Ki Baatein</span>
