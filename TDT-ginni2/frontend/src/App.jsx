@@ -10,7 +10,7 @@ import { fetchReadingFromKB } from "./utils/kbRouter";
 
 function App() {
   const { state, setReadingResult, setDrawnCards, setReading, setCurrentQuestion, setAppStatus, addChatHistoryEntry } = useApp();
-  const { hasOnboarded, selectedQuestion, readingResult, isReading, language, currentAppStatus, currentQuestion, chatHistory } = state;
+  const { hasOnboarded, selectedQuestion, readingResult, isReading, language, currentAppStatus, currentQuestion, chatHistory, drawnCards } = state;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
