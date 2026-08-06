@@ -8,14 +8,14 @@ const LANGUAGES = [
   { code: "hindi", label: "Hindi", flag: "🇮🇳" }
 ];
 
-const QUICK_ACTIONS = [
-  { id: "yesno", label: "Yes / No (direct)", icon: "❓" },
-  { id: "today", label: "Aaj ka din kaisa hoga", icon: "☀️" },
-  { id: "feelings", label: "Unki feelings", icon: "💖" },
-  { id: "actions", label: "Unke next actions", icon: "⚡" },
-  { id: "monthly", label: "Aaj ka mahina", icon: "📅" },
-  { id: "spiritual", label: "Spiritual journey", icon: "🌟" }
-];
+// const QUICK_ACTIONS = [
+//   { id: "yesno", label: "Yes / No (direct)", icon: "❓" },
+//   { id: "today", label: "Aaj ka din kaisa hoga", icon: "☀️" },
+//   { id: "feelings", label: "Unki feelings", icon: "💖" },
+//   { id: "actions", label: "Unke next actions", icon: "⚡" },
+//   { id: "monthly", label: "Aaj ka mahina", icon: "📅" },
+//   { id: "spiritual", label: "Spiritual journey", icon: "🌟" }
+// ];
 
 const TypingIndicator = () => (
   <div className="flex items-center gap-1 px-4 py-3 bg-card border border-gold/20 rounded-2xl rounded-bl-sm w-fit">
