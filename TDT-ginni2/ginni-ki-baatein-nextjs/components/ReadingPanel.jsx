@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { DECK, LANG_LABEL } from "@/lib/topics";
+import { DECK, MONTH_NAMES, UNAVAILABLE_MESSAGE } from "@/lib/topics";
 import { READINGS } from "@/lib/readings";
 import { getReadingFor, shuffle } from "@/lib/parseReading";
 import TarotCard from "./TarotCard";
@@ -14,18 +14,12 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
 
   const data = topic ? READINGS[topic.dataKey] : null;
 
+  // Always spread the full 78-card deck, freshly shuffled per topic/redraw.
   const spreadCards = useMemo(() => {
     if (!topic) return [];
-    const spreadSize = Math.min(DECK.length, Math.max(15, topic.cards + 12));
-    return shuffle(DECK).slice(0, spreadSize);
+    return shuffle(DECK);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic, drawSeed]);
-
-  // reset when the topic changes
-  useEffect(() => {
-    setPicks([]);
-    setFlippingCard(null);
-  }, [topic]);
 
   useEffect(() => {
     if (revealEndRef.current) {
@@ -85,7 +79,7 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
           {Array.from({ length: total }, (_, i) => {
             const cls = i < doneCount ? "done" : i === doneCount ? "current" : "";
             return (
-              <span key={i} className={"progress-dot " + cls}>
+              <span key={i} className={"progress-dot " + cls} title={MONTH_NAMES[i]}>
                 {i < doneCount ? "✓" : i + 1}
               </span>
             );
@@ -95,21 +89,28 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
 
       {doneCount < total && (
         <>
-          <div className="spread">
+          {total > 1 && (
+            <p className="spread-hint" style={{ marginTop: 0 }}>
+              Drawing for <b style={{ color: "var(--gold-soft)" }}>{MONTH_NAMES[doneCount]}</b> —
+              card {doneCount + 1} of {total}.
+            </p>
+          )}
+          <div className="spread" key={topic.id + "-" + drawSeed}>
             {flippingCard && (
               <TarotCard key={flippingCard} cardName={flippingCard} flipped onPick={() => {}} />
             )}
-            {remainingSpread.map((c) => (
+            {remainingSpread.map((c, i) => (
               <TarotCard
                 key={c}
                 cardName={c}
                 flipped={false}
                 disabledOther={!!flippingCard}
                 onPick={handlePick}
+                style={{ animationDelay: `${Math.min(i * 9, 550)}ms` }}
               />
             ))}
           </div>
-          <p className="spread-hint">Tap the card that calls to you.</p>
+          <p className="spread-hint">78 cards, freshly shuffled. Tap the one that calls to you.</p>
         </>
       )}
 
@@ -117,36 +118,32 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
         <div className="reveal">
           {picks.map((pick) => {
             const raw = data[pick.card];
+            const monthLabel = total > 1 ? MONTH_NAMES[pick.monthIndex - 1] : null;
+
             if (!raw) {
               return (
-                <div className="month-entry" key={pick.card}>
+                <div className="month-entry" key={pick.card + pick.monthIndex}>
                   <div className="reveal-card-name">
                     <span className="card-label">{pick.card}</span>
+                    {monthLabel && <span className="month-tag">{monthLabel}</span>}
                   </div>
                   <p className="reveal-text">No reading text found for this card in the source file.</p>
                 </div>
               );
             }
-            const { text, short } = getReadingFor(raw, lang);
+
+            const { text, available } = getReadingFor(raw, lang);
             return (
               <div className="month-entry" key={pick.card + pick.monthIndex}>
                 <div className="reveal-card-name">
                   <span className="card-label">{pick.card}</span>
-                  {total > 1 && (
-                    <span className="month-tag">
-                      Month {pick.monthIndex} of {total}
-                    </span>
-                  )}
+                  {monthLabel && <span className="month-tag">{monthLabel}</span>}
                 </div>
-                <p className="reveal-text">
-                  {text}
-                  {short && (
-                    <span className="note">
-                      A {LANG_LABEL[lang]} version of this reading wasn&rsquo;t available in the
-                      source — showing it in the language it was written.
-                    </span>
-                  )}
-                </p>
+                {available ? (
+                  <p className="reveal-text">{text}</p>
+                ) : (
+                  <p className="reveal-text unavailable">{UNAVAILABLE_MESSAGE[lang]}</p>
+                )}
               </div>
             );
           })}

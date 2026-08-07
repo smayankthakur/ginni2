@@ -30,3 +30,14 @@ export const TOPICS = [
 ];
 
 export const LANG_LABEL = { hinglish: "Hinglish", english: "English", hindi: "Hindi" };
+
+export const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+export const UNAVAILABLE_MESSAGE = {
+  hinglish: "Yeh reading abhi Hinglish mein available nahi hai.",
+  english: "This reading isn't available in English yet.",
+  hindi: "यह रीडिंग अभी हिंदी में उपलब्ध नहीं है।",
+};

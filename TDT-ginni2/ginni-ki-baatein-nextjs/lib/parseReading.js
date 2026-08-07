@@ -41,9 +41,8 @@ export function parseCardText(raw) {
 export function getReadingFor(raw, lang) {
   const p = parseCardText(raw);
   const byLang = { hinglish: p.hinglish, english: p.english, hindi: p.hindi };
-  if (byLang[lang]) return { text: byLang[lang], short: false };
-  const fallback = p.hinglish || p.english || p.hindi || "";
-  return { text: fallback, short: true };
+  if (byLang[lang]) return { text: byLang[lang], available: true };
+  return { text: null, available: false };
 }
 
 export function shuffle(arr) {

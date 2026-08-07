@@ -42,9 +42,21 @@ npm run start
   universe-guidance file (`data/daily-placeholder.json`) — its own source
   document uploaded empty and needs to be re-supplied and swapped into
   `lib/readings.js` / `lib/topics.js`.
-- A few individual cards are missing a language version in some files
-  (e.g. `data/monthly.json` only has an English section for 14 of 78 cards).
-  The UI falls back to whatever language is available and shows a small note.
+- Some individual cards don't have a version in every language (e.g.
+  `data/monthly.json` only has an English section for 14 of 78 cards). The
+  reading is shown strictly in the language selected at onboarding — if that
+  card has no version in that language, the app shows a short "not available
+  in this language yet" message instead of silently falling back to another
+  language.
+
+## Spread & draw behaviour
+
+- The full 78-card deck is shown, reshuffled on every topic open and on every
+  "Draw again". Cards fade in with a staggered entrance animation
+  (`prefers-reduced-motion` disables it).
+- For the 12-month topic, cards are drawn one at a time and assigned to
+  January → December in the order picked; the hint line above the spread
+  names which month you're currently drawing for.
 
 ## Swapping the placeholder file later
 

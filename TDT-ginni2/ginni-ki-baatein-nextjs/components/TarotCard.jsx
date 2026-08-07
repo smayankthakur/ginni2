@@ -1,11 +1,14 @@
 "use client";
 
-export default function TarotCard({ cardName, flipped, disabledOther, onPick }) {
+export default function TarotCard({ cardName, flipped, disabledOther, onPick, style }) {
   return (
     <button
       className={
-        "tarot-card" + (flipped ? " flipped" : "") + (disabledOther ? " picked-elsewhere" : "")
+        "tarot-card spread-item" +
+        (flipped ? " flipped" : "") +
+        (disabledOther ? " picked-elsewhere" : "")
       }
+      style={style}
       disabled={flipped || disabledOther}
       aria-label={flipped ? cardName : "Draw a card"}
       onClick={() => onPick(cardName)}

@@ -28,6 +28,7 @@ export default function Home() {
       <main className="main">
         <div className="main-inner">
           <ReadingPanel
+            key={activeTopic?.id ?? "empty"}
             topic={activeTopic}
             lang={session.lang}
             onAnotherQuestion={() => setActiveTopic(null)}
