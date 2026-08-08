@@ -163,3 +163,32 @@ What's shipped right now are placeholders — original geometric designs in
 the app's own palette, not artwork from any existing tarot deck. See
 `public/cards/README.md` for the full filename list and how to swap in your
 own art (same filenames, no code changes needed).
+
+## Theme + animation pass (this revision)
+
+Analysed `thedivinetarotonline.com` (the only page that returned real
+content — `/reading` and the `chat.` subdomain are pure client-rendered SPAs
+with no usable static HTML from a fetch). Pulled its theme color
+(`#6d28d9`, a rich violet) and worked it in as a second brand accent
+alongside the existing gold, rather than replacing it — the app now reads
+as gold *and* violet rather than gold-only, matching the parent site more
+closely while keeping what already worked.
+
+Where violet shows up: the ambient background aurora, hover/selection glow
+on cards, the selected topic's left-edge accent, the active language pill,
+the "current" progress dot, and the card-back's inner glow.
+
+**Card selection page specifically** (the main ask):
+
+- Cards now "deal" in — scaled down, slightly rotated, sliding into place
+  with a per-position stagger — instead of a plain fade.
+- Hovering an unflipped card lifts and tilts it with a violet glow ring.
+- Picking a card now bursts a small sparkle bloom (alternating gold/violet)
+  outward from the card at the moment it flips, on top of the existing
+  glow-pulse and grow animation.
+- The card back got a richer treatment: a soft violet radial glow layered
+  under the existing gold diagonal pattern, plus an inset double-border
+  glow, instead of a flat pattern.
+
+All of this still respects `prefers-reduced-motion: reduce` via the
+existing global rule.

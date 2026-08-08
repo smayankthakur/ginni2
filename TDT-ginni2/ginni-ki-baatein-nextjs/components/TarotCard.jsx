@@ -36,6 +36,8 @@ export default function TarotCard({ cardName, flipped, disabledOther, onPick, st
         )}
         {flipped && imgFailed && <span className="fn">{cardName}</span>}
       </span>
+      {flipped &&
+        Array.from({ length: 6 }).map((_, i) => <span key={i} className="spark" />)}
     </button>
   );
 }

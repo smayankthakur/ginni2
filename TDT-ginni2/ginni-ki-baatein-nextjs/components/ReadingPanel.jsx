@@ -124,8 +124,8 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
           </div>
           <p className="spread-hint">
             {total > 1
-              ? `78 cards, freshly shuffled. ${doneCount} of ${total} picked — keep going.`
-              : "78 cards, freshly shuffled. Tap the one that calls to you."}
+              ? `✨ 78 cards, freshly shuffled. ${doneCount} of ${total} picked — keep going.`
+              : "✨ 78 cards, freshly shuffled. Tap the one that calls to you."}
           </p>
         </>
       )}
