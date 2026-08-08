@@ -16,6 +16,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <div className="stars" />
+        <div className="aurora" />
         {children}
       </body>
     </html>

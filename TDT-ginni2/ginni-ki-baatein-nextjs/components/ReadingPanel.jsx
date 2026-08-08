@@ -132,7 +132,7 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
               );
             }
 
-            const { text, available } = getReadingFor(raw, lang);
+            const { text, available, singleLanguageSource } = getReadingFor(raw, lang);
             return (
               <div className="month-entry" key={pick.card + pick.monthIndex}>
                 <div className="reveal-card-name">
@@ -140,7 +140,15 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
                   {monthLabel && <span className="month-tag">{monthLabel}</span>}
                 </div>
                 {available ? (
-                  <p className="reveal-text">{text}</p>
+                  <p className="reveal-text">
+                    {text}
+                    {singleLanguageSource && (
+                      <span className="note">
+                        This reading only exists in one language in the source — shown as
+                        written.
+                      </span>
+                    )}
+                  </p>
                 ) : (
                   <p className="reveal-text unavailable">{UNAVAILABLE_MESSAGE[lang]}</p>
                 )}

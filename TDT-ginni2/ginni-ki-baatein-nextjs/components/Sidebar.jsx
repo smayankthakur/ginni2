@@ -20,6 +20,7 @@ export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onRe
           <li
             key={t.id}
             className={"topic-item" + (activeTopicId === t.id ? " selected" : "")}
+            style={{ animationDelay: `${t.id * 40}ms` }}
             onClick={() => onSelectTopic(t)}
           >
             <span className="topic-num">{String(t.id).padStart(2, "0")}</span>
