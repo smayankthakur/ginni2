@@ -59,7 +59,7 @@ export default function Onboarding({ onBegin }) {
           disabled={name.trim().length === 0}
           onClick={() => onBegin(name.trim(), lang)}
         >
-          Enter the counsel
+          Start your reading
         </button>
       </div>
     </div>

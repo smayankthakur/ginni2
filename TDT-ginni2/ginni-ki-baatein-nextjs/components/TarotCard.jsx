@@ -1,6 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { cardSlug } from "@/lib/topics";
+
 export default function TarotCard({ cardName, flipped, disabledOther, onPick, style }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const src = `/cards/${cardSlug(cardName)}.jpg`;
+
   return (
     <button
       className={
@@ -19,7 +25,16 @@ export default function TarotCard({ cardName, flipped, disabledOther, onPick, st
         </svg>
       </span>
       <span className="face front">
-        <span className="fn">{flipped ? cardName : ""}</span>
+        {flipped && !imgFailed && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={cardName}
+            className="card-art"
+            onError={() => setImgFailed(true)}
+          />
+        )}
+        {flipped && imgFailed && <span className="fn">{cardName}</span>}
       </span>
     </button>
   );

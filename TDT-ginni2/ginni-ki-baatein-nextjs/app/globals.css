@@ -340,6 +340,30 @@ button{font-family:inherit;}
   max-width:560px;
 }
 
+.ginni-msg{
+  position:relative;
+  background:linear-gradient(180deg, rgba(201,123,132,0.10), rgba(201,123,132,0.04));
+  border:1px solid rgba(201,123,132,0.28);
+  border-radius:14px;
+  padding:16px 18px 16px 42px;
+  margin:0 0 26px;
+  font-size:14.5px;
+  line-height:1.65;
+  color:var(--text-primary);
+  max-width:560px;
+  animation:fadeInUp .5s ease both;
+}
+.ginni-msg--closing{
+  margin-top:30px;
+  max-width:100%;
+}
+.ginni-mark{
+  position:absolute; left:16px; top:16px;
+  color:var(--rose);
+  font-size:15px;
+  animation:gentlePulse 2.6s ease-in-out infinite;
+}
+
 .progress-track{
   display:flex; gap:5px; margin-bottom:26px; flex-wrap:wrap;
   animation:fadeInUp .45s ease .05s both;
@@ -405,12 +429,19 @@ button{font-family:inherit;}
   transform:rotateY(180deg);
   padding:5px 3px;
   text-align:center;
+  overflow:hidden;
 }
 .tarot-card .face.front .fn{
   font-family:var(--serif);
   font-size:9px;
   line-height:1.15;
   color:var(--gold-soft);
+}
+.tarot-card .card-art{
+  width:100%; height:100%;
+  object-fit:cover;
+  border-radius:5px;
+  display:block;
 }
 .tarot-card.flipped{
   width:78px; height:124px;

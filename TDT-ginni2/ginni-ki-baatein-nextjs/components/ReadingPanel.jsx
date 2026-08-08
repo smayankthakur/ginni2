@@ -4,9 +4,10 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { DECK, MONTH_NAMES, UNAVAILABLE_MESSAGE } from "@/lib/topics";
 import { READINGS } from "@/lib/readings";
 import { getReadingFor, shuffle } from "@/lib/parseReading";
+import { getGreeting, getClosing } from "@/lib/ginni";
 import TarotCard from "./TarotCard";
 
-export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
+export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
   const [picks, setPicks] = useState([]); // [{card, monthIndex}]
   const [flippingCard, setFlippingCard] = useState(null);
   const [drawSeed, setDrawSeed] = useState(0);
@@ -46,6 +47,10 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
 
   const total = topic.cards;
   const doneCount = picks.length;
+  // For a single-card topic, reveal right after the pick. For a multi-card
+  // topic (the 12-month spread), hold every reading back until all cards
+  // are drawn, then show the full spread of readings together.
+  const showReveal = total === 1 ? doneCount > 0 : doneCount === total;
   const remainingSpread = spreadCards.filter(
     (c) => !picks.some((p) => p.card === c) && c !== flippingCard
   );
@@ -71,6 +76,13 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
         <p className="prompt" style={{ color: "var(--rose)" }}>
           Note: this question&rsquo;s own reading set wasn&rsquo;t available, so it&rsquo;s
           temporarily drawing from the universe-guidance deck as a placeholder.
+        </p>
+      )}
+
+      {doneCount === 0 && (
+        <p className="ginni-msg">
+          <span className="ginni-mark">✦</span>
+          {getGreeting(name, lang, topic, drawSeed)}
         </p>
       )}
 
@@ -110,11 +122,15 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
               />
             ))}
           </div>
-          <p className="spread-hint">78 cards, freshly shuffled. Tap the one that calls to you.</p>
+          <p className="spread-hint">
+            {total > 1
+              ? `78 cards, freshly shuffled. ${doneCount} of ${total} picked — keep going.`
+              : "78 cards, freshly shuffled. Tap the one that calls to you."}
+          </p>
         </>
       )}
 
-      {doneCount > 0 && (
+      {showReveal && (
         <div className="reveal">
           {picks.map((pick) => {
             const raw = data[pick.card];
@@ -155,6 +171,12 @@ export default function ReadingPanel({ topic, lang, onAnotherQuestion }) {
               </div>
             );
           })}
+
+          <p className="ginni-msg ginni-msg--closing">
+            <span className="ginni-mark">✦</span>
+            {getClosing(name, lang, drawSeed)}
+          </p>
+
           <div ref={revealEndRef} />
         </div>
       )}

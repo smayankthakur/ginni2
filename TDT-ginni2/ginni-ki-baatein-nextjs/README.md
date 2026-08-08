@@ -119,3 +119,47 @@ more closely once you've seen it live.
    new key, e.g. `daily`.
 4. In `lib/topics.js`, change topic 7's `dataKey` to `"daily"` and drop the
    `placeholder: true` flag.
+
+## This revision
+
+- Button copy: "Enter the counsel" → "Start your reading".
+- The 12-month topic ("Aapka Pura Saal Kaisa Rahega") now holds all readings
+  back until all 12 cards are drawn — you pick your way through January to
+  December first, then the full year appears together, instead of each
+  month's reading popping up as you go.
+- Added a lightweight "Ginni" voice around the readings: a warm greeting
+  (using your name) before the spread, and a supportive closing line after
+  the reveal — see `lib/ginni.js`.
+
+### About the Ginni voice — what this is and isn't
+
+`lib/ginni.js` adds static, per-language greeting/closing lines in Ginni's
+tone (warm, name-using, non-scary, best-friend register) — templated text
+chosen from a small rotating set, not generated per card or per question.
+
+**The actual tarot interpretation text is untouched** — it still comes
+directly from the JSON files, unmodified, exactly as required. Ginni's voice
+only wraps around it (before the spread, after the reveal).
+
+What this does *not* do yet: react specifically to which card came up, echo
+back the user's actual question, or vary its language turn by turn the way
+the persona brief describes ("acknowledge their feelings," "interpret tarot
+cards symbolically" in the moment). That level of dynamic, context-aware
+response needs an LLM call at read time — e.g. a server route that sends the
+card + question + user's name to the Claude API and streams back a
+generated response — which is real additional scope: an API key, a backend
+route, and a per-reading cost. Happy to build that next if you want the
+fully dynamic version; this revision ships the static version so the app
+keeps working with zero backend and zero per-reading cost in the meantime.
+
+## Card art
+
+`public/cards/` now has all 78 card images, named to match `cardSlug()` in
+`lib/topics.js` (e.g. `the-fool.jpg`, `ace-of-cups.jpg`). `TarotCard.jsx`
+shows the matching image on flip, with a plain-text fallback if a specific
+file is ever missing.
+
+What's shipped right now are placeholders — original geometric designs in
+the app's own palette, not artwork from any existing tarot deck. See
+`public/cards/README.md` for the full filename list and how to swap in your
+own art (same filenames, no code changes needed).

@@ -26,10 +26,16 @@ export const TOPICS = [
   { id: 7, title: "Aapka Aaj Ka Din Kaisa Rahega", cards: 1, dataKey: "dailyPlaceholder", prompt: "Ek card draw karo — aaj universe ka message kya hai.", placeholder: true },
   { id: 8, title: "Aapki Spiritual Journey Kaunsi Hai", cards: 1, dataKey: "spiritualJourney", prompt: "Ek card draw karo aur apni spiritual journey ka naam jaano." },
   { id: 9, title: "Aapka Mahina Kaisa Rahega", cards: 1, dataKey: "monthly", prompt: "Ek card draw karo — is mahine ka overview." },
-  { id: 10, title: "Aapka Pura Saal Kaisa Rahega", cards: 12, dataKey: "monthly", prompt: "12 cards draw karo — har card ek mahine ko represent karega." },
+  { id: 10, title: "Aapka Pura Saal Kaisa Rahega", cards: 12, dataKey: "monthly", prompt: "Apne 12 cards choose karo — ek-ek karke, sabhi 12 mahino ke liye. Jab 12 ho jayenge, tumhara pura saal ka reading ek saath dikhega." },
 ];
 
 export const LANG_LABEL = { hinglish: "Hinglish", english: "English", hindi: "Hindi" };
+
+// Turns a card name into its image filename, e.g. "The Fool" -> "the-fool",
+// "Ace of Cups" -> "ace-of-cups". Matches every file in public/cards/.
+export function cardSlug(name) {
+  return name.trim().toLowerCase().replace(/\s+/g, "-");
+}
 
 export const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",

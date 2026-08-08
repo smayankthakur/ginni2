@@ -31,6 +31,7 @@ export default function Home() {
             key={activeTopic?.id ?? "empty"}
             topic={activeTopic}
             lang={session.lang}
+            name={session.name}
             onAnotherQuestion={() => setActiveTopic(null)}
           />
         </div>
