@@ -24,6 +24,46 @@ function normalizeLabel(raw) {
 const MARKER_RE =
   /(?:^|\n)[ \t]*(Hinglish(?:\s*\([^)]*\))?|English(?:\s*\([^)]*\))?|HINDI|Hindi)\s*:[ \t]*|(?:^|\n)[ \t]*(ENGLISH(?:[ \t]+VERSION)?|English(?:[ \t]+Version)?|हिंदी)[ \t]*(?=\n|$)/gim;
 
+const DEVANAGARI_RE = /[\u0900-\u097F]/;
+const SEPARATOR_LINE_RE = /^-+$/;
+
+// Shape D: no labels anywhere, but the languages are still separated by
+// line — one or more English sentences, then one or more Hindi sentences
+// (identifiable by Devanagari script), then one or more Hinglish sentences
+// covering the same ground again. Used by files like partner-action.json.
+// Returns null if the text doesn't actually contain a Hindi block to anchor
+// the split on (e.g. genuinely single-language files).
+function splitByScript(body) {
+  const lines = body
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !SEPARATOR_LINE_RE.test(l));
+  if (lines.length < 2) return null;
+
+  let hindiStart = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (DEVANAGARI_RE.test(lines[i])) {
+      hindiStart = i;
+      break;
+    }
+  }
+  if (hindiStart <= 0) return null; // no Hindi block, or Hindi is the very first line (unexpected shape)
+
+  let hindiEnd = hindiStart;
+  while (hindiEnd < lines.length && DEVANAGARI_RE.test(lines[hindiEnd])) hindiEnd++;
+
+  const english = lines.slice(0, hindiStart);
+  const hindi = lines.slice(hindiStart, hindiEnd);
+  const hinglish = lines.slice(hindiEnd);
+  if (english.length === 0 || hindi.length === 0 || hinglish.length === 0) return null;
+
+  return {
+    english: english.join(" "),
+    hindi: hindi.join(" "),
+    hinglish: hinglish.join(" "),
+  };
+}
+
 export function parseCardText(raw) {
   const firstBreak = raw.indexOf("\n");
   const header = firstBreak === -1 ? raw : raw.slice(0, firstBreak);
@@ -32,6 +72,10 @@ export function parseCardText(raw) {
   const matches = [...body.matchAll(MARKER_RE)];
 
   if (matches.length === 0) {
+    const byScript = splitByScript(body);
+    if (byScript) {
+      return { header, ...byScript, hasMarkers: true };
+    }
     return { header, hinglish: body.trim() || null, english: null, hindi: null, hasMarkers: false };
   }
 

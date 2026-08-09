@@ -15,13 +15,11 @@ export default function Onboarding({ onBegin }) {
   return (
     <div id="onboard">
       <div className="onboard-card">
-        <svg className="onboard-glyph" viewBox="0 0 46 46" fill="none">
-          <circle cx="23" cy="23" r="21" stroke="#D4AF6A" strokeWidth="1" opacity="0.5" />
-          <path d="M23 8 L26 20 L38 23 L26 26 L23 38 L20 26 L8 23 L20 20 Z" fill="#E8CDA0" opacity="0.9" />
-        </svg>
-        <h1>Ginni Ki Baatein</h1>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="The Divine Tarot" className="onboard-glyph" />
+        <h1>The Divine Tarot</h1>
         <p className="onboard-sub">
-          A private tarot counsel. Tell me your name and the tongue
+          Your guide Ginni is ready. Tell me your name and the tongue
           <br />
           you&rsquo;d like your reading in.
         </p>

@@ -1,8 +1,22 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Ginni Ki Baatein — A Private Tarot Counsel",
-  description: "A private tarot counsel — refined Hinglish readings for clarity and strategic foresight.",
+  title: "The Divine Tarot — Reading Chat",
+  description:
+    "Mystical, emotionally intelligent tarot readings for love, career and life — in English, Hindi and Hinglish.",
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/favicon-180.png",
+    shortcut: "/favicon.ico",
+  },
+};
+
+export const viewport = {
+  themeColor: "#6d28d9",
 };
 
 export default function RootLayout({ children }) {
