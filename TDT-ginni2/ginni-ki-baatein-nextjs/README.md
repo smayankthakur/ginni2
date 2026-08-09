@@ -192,3 +192,46 @@ the "current" progress dot, and the card-back's inner glow.
 
 All of this still respects `prefers-reduced-motion: reduce` via the
 existing global rule.
+
+## Reveal page + spread animation pass (this revision)
+
+**The reveal ("reading page") is now built around the actual card image**,
+not just text:
+
+- Each drawn card shows in a glowing framed portrait (violet-gold border,
+  a slow ambient pulse) next to its reading, with a small emoji badge in
+  the corner (✨ Major Arcana, 💧 Cups, 🪙 Pentacles, ⚔️ Swords, 🔥 Wands —
+  see `cardEmoji()` in `lib/topics.js`) that pops in with a little bounce.
+- New `components/RevealCard.jsx` holds this — one card's full presentation
+  (image, badge, name, reading, language-availability note) in one place.
+
+**The spread now reads as an actual scattered tarot spread** instead of a
+neat grid — each card position gets a slightly different rest tilt and
+vertical drift (`--rest-rot` / `--rest-y`, cycled over 7 variants), cards
+deal in from a shuffle point, and hovering straightens + lifts a card back
+out of the scatter.
+
+### Two real bugs found and fixed while verifying this against a live browser
+
+I don't just eyeball CSS for this kind of change — I drove the actual app
+with Playwright (fill the form, click a topic, click a card, screenshot at
+precise moments) to check the animation actually looks right, and caught
+two genuine bugs that would never show up from reading the CSS alone:
+
+1. **The picked card was invisible during its own flip.** The base
+   `.tarot-card` rule starts every card at `opacity:0` and relies on the
+   `dealIn` entrance animation to bring it to 1. But the moment a card is
+   picked, `.tarot-card.flipped` swaps the element's `animation` to
+   `flipGlow` — which never touches opacity — so `dealIn` never got to run
+   and the card sat at `opacity:0` for its entire flip. Fixed by setting
+   `opacity:1` directly on `.tarot-card.flipped`.
+2. **The picked card jumped to the top-left corner instead of growing in
+   place.** The flipping card was rendered as a separate element inserted
+   at the start of the list, rather than the same element that was already
+   in its grid position. Fixed by restructuring `ReadingPanel.jsx` so the
+   same card (same React key) just gets `flipped={true}` in place, so it
+   grows and glows exactly where you clicked it.
+
+Both were confirmed fixed via computed-style checks (`opacity`, bounding
+box position before/after) as well as visually, not just inferred from the
+code.

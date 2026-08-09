@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { DECK, MONTH_NAMES, UNAVAILABLE_MESSAGE } from "@/lib/topics";
+import { DECK, MONTH_NAMES } from "@/lib/topics";
 import { READINGS } from "@/lib/readings";
-import { getReadingFor, shuffle } from "@/lib/parseReading";
+import { shuffle } from "@/lib/parseReading";
 import { getGreeting, getClosing } from "@/lib/ginni";
 import TarotCard from "./TarotCard";
+import RevealCard from "./RevealCard";
 
 export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
   const [picks, setPicks] = useState([]); // [{card, monthIndex}]
@@ -51,9 +52,10 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
   // topic (the 12-month spread), hold every reading back until all cards
   // are drawn, then show the full spread of readings together.
   const showReveal = total === 1 ? doneCount > 0 : doneCount === total;
-  const remainingSpread = spreadCards.filter(
-    (c) => !picks.some((p) => p.card === c) && c !== flippingCard
-  );
+  // Cards still face-down in the spread — this excludes only cards already
+  // fully picked (in `picks`), not the one currently mid-flip, so that card
+  // keeps the same key/position and grows in place instead of jumping.
+  const visibleSpread = spreadCards.filter((c) => !picks.some((p) => p.card === c));
 
   function handlePick(cardName) {
     if (flippingCard) return;
@@ -108,17 +110,14 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
             </p>
           )}
           <div className="spread" key={topic.id + "-" + drawSeed}>
-            {flippingCard && (
-              <TarotCard key={flippingCard} cardName={flippingCard} flipped onPick={() => {}} />
-            )}
-            {remainingSpread.map((c, i) => (
+            {visibleSpread.map((c, i) => (
               <TarotCard
                 key={c}
                 cardName={c}
-                flipped={false}
-                disabledOther={!!flippingCard}
+                flipped={c === flippingCard}
+                disabledOther={!!flippingCard && c !== flippingCard}
                 onPick={handlePick}
-                style={{ animationDelay: `${Math.min(i * 9, 550)}ms` }}
+                style={c === flippingCard ? undefined : { animationDelay: `${Math.min(i * 9, 550)}ms` }}
               />
             ))}
           </div>
@@ -135,40 +134,14 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
           {picks.map((pick) => {
             const raw = data[pick.card];
             const monthLabel = total > 1 ? MONTH_NAMES[pick.monthIndex - 1] : null;
-
-            if (!raw) {
-              return (
-                <div className="month-entry" key={pick.card + pick.monthIndex}>
-                  <div className="reveal-card-name">
-                    <span className="card-label">{pick.card}</span>
-                    {monthLabel && <span className="month-tag">{monthLabel}</span>}
-                  </div>
-                  <p className="reveal-text">No reading text found for this card in the source file.</p>
-                </div>
-              );
-            }
-
-            const { text, available, singleLanguageSource } = getReadingFor(raw, lang);
             return (
-              <div className="month-entry" key={pick.card + pick.monthIndex}>
-                <div className="reveal-card-name">
-                  <span className="card-label">{pick.card}</span>
-                  {monthLabel && <span className="month-tag">{monthLabel}</span>}
-                </div>
-                {available ? (
-                  <p className="reveal-text">
-                    {text}
-                    {singleLanguageSource && (
-                      <span className="note">
-                        This reading only exists in one language in the source — shown as
-                        written.
-                      </span>
-                    )}
-                  </p>
-                ) : (
-                  <p className="reveal-text unavailable">{UNAVAILABLE_MESSAGE[lang]}</p>
-                )}
-              </div>
+              <RevealCard
+                key={pick.card + pick.monthIndex}
+                pick={pick}
+                raw={raw}
+                lang={lang}
+                monthLabel={monthLabel}
+              />
             );
           })}
 

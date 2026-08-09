@@ -37,6 +37,17 @@ export function cardSlug(name) {
   return name.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
+// A small emoji badge per card category — Major Arcana vs. each suit —
+// purely decorative, echoing the little emoji tag next to each card on
+// thedivinetarotonline.com's homepage reveal section.
+export function cardEmoji(name) {
+  if (name.includes("of Cups")) return "💧";
+  if (name.includes("of Pentacles")) return "🪙";
+  if (name.includes("of Swords")) return "⚔️";
+  if (name.includes("of Wands")) return "🔥";
+  return "✨"; // Major Arcana
+}
+
 export const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
