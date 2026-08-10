@@ -41,7 +41,7 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
           />
         </svg>
         <h2>Choose a question to begin</h2>
-        <p>Pick one of the nine questions on the left. I&rsquo;ll lay out a spread — draw the card that draws you.</p>
+        <p>Pick one of the questions on the left. I&rsquo;ll lay out a spread — draw the card that draws you.</p>
       </div>
     );
   }

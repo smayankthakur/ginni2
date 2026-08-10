@@ -16,7 +16,7 @@ export default function RevealCard({ pick, raw, lang, monthLabel }) {
             <span className="card-label">{pick.card}</span>
             {monthLabel && <span className="month-tag">{monthLabel}</span>}
           </div>
-          <p className="reveal-text">No reading text found for this card in the source file.</p>
+          <p className="reveal-text unavailable">{UNAVAILABLE_MESSAGE[lang]}</p>
         </div>
       </div>
     );
