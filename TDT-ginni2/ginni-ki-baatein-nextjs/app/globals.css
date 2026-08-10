@@ -1,6 +1,6 @@
 :root {
-  --bg-deep: #12102a7f;
-  --bg-panel: #1b18367f;
+  --bg-deep: #12102a;
+  --bg-panel: #1b1836;
   --bg-panel-raised: #241F49;
   --bg-card-back: #221D42;
   --gold: #D4AF6A;
@@ -27,7 +27,7 @@
 
 html,
 body {
-  height: 100%;
+  /* height: 100%; */
 }
 
 body {
