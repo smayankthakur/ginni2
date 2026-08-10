@@ -6,7 +6,7 @@ import { getReadingFor } from "@/lib/parseReading";
 
 export default function RevealCard({ pick, raw, lang, monthLabel }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const src = `/cards/${cardSlug(pick.card)}.jpg`;
+  const src = `/cards/${cardSlug(pick.card)}.png`;
 
   if (!raw) {
     return (

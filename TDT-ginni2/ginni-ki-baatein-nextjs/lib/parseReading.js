@@ -6,6 +6,9 @@
 //     "Hinglish (Latin Script):" in a handful of cards
 //   - whole-line labels with no colon: "ENGLISH", "ENGLISH VERSION",
 //     "English", "English Version", and "हिंदी" (Hindi, in Devanagari)
+//   - a few source files label the Devanagari section "Devanagari Hinglish:"
+//     instead of "Hindi:", or misspell it as "Hinid:", "HINDIN:", "HINDIQ:"
+//     — these are still genuine Hindi text, just inconsistently labelled
 //   - no label at all — the whole card is a single, single-language block
 //
 // This parser finds every marker it recognises (of either style), splits
@@ -14,7 +17,9 @@
 // file follows.
 function normalizeLabel(raw) {
   if (raw === "हिंदी") return "hindi";
-  const s = raw.toLowerCase();
+  const s = raw.toLowerCase().trim();
+  if (s.startsWith("devanagari")) return "hindi";
+  if (s === "hinid") return "hindi";
   if (s.startsWith("hinglish")) return "hinglish";
   if (s.startsWith("english")) return "english";
   if (s.startsWith("hindi")) return "hindi";
@@ -22,7 +27,7 @@ function normalizeLabel(raw) {
 }
 
 const MARKER_RE =
-  /(?:^|\n)[ \t]*(Hinglish(?:\s*\([^)]*\))?|English(?:\s*\([^)]*\))?|HINDI|Hindi)\s*:[ \t]*|(?:^|\n)[ \t]*(ENGLISH(?:[ \t]+VERSION)?|English(?:[ \t]+Version)?|हिंदी)[ \t]*(?=\n|$)/gim;
+  /(?:^|\n)[ \t]*(Devanagari\s+Hinglish|Hinglish(?:\s*\([^)]*\))?|Hinid|English(?:\s*\([^)]*\))?|Hindi\w*)\s*:[ \t]*|(?:^|\n)[ \t]*(ENGLISH(?:[ \t]+VERSION)?|English(?:[ \t]+Version)?|Hinglish|Hindi|हिंदी)[ \t]*(?=\n|$)/gim;
 
 export function parseCardText(raw) {
   const firstBreak = raw.indexOf("\n");
