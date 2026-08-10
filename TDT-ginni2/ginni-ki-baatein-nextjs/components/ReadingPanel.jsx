@@ -131,6 +131,9 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
 
       {showReveal && (
         <div className="reveal">
+          <div className="reveal-divider">
+            <span>✨ Card Ka Message</span>
+          </div>
           {picks.map((pick) => {
             const raw = data[pick.card];
             const monthLabel = total > 1 ? MONTH_NAMES[pick.monthIndex - 1] : null;

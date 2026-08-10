@@ -20,6 +20,7 @@ export default function Home() {
         lang={session.lang}
         activeTopicId={activeTopic?.id}
         onSelectTopic={setActiveTopic}
+        onChangeLang={(lang) => setSession((prev) => ({ ...prev, lang }))}
         onRestart={() => {
           setSession(null);
           setActiveTopic(null);
