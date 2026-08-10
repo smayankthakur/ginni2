@@ -8,7 +8,7 @@ export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onRe
       <div className="sidebar-header">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="The Divine Tarot" className="sidebar-glyph" />
-        <span className="brand">The Divine Tarot</span>
+        <span className="brand">Ginni Ki Baatein</span>
       </div>
       <div className="sidebar-user">
         Reading for <b>{name}</b> · {LANG_LABEL[lang]}
@@ -37,10 +37,6 @@ export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onRe
         Each spread is shuffled fresh. Pick with an open mind — the card that calls to you is the
         one meant for you.
         <button onClick={onRestart}>Start over</button>
-        <div className="trust-row">
-          <span>🔒 Secure &amp; Private</span>
-          <span>💖 Trusted by 7L+ Seekers</span>
-        </div>
       </div>
     </aside>
   );

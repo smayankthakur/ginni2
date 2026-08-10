@@ -1,22 +1,13 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "The Divine Tarot — Reading Chat",
-  description:
-    "Mystical, emotionally intelligent tarot readings for love, career and life — in English, Hindi and Hinglish.",
+  title: "Ginni Ki Baatein | The Divine Tarot",
+  description: "A private tarot counsel from The Divine Tarot — refined Hinglish readings for clarity and strategic foresight.",
   icons: {
-    icon: [
-      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: "/favicon-180.png",
+    icon: "/icon.png",
     shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
   },
-};
-
-export const viewport = {
-  themeColor: "#6d28d9",
 };
 
 export default function RootLayout({ children }) {

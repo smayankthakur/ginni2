@@ -11,23 +11,21 @@ export const DECK = [
   ),
 ];
 
-// Each topic: id, title, number of cards drawn, and which JSON module powers it.
-// Topics 1&3 and 2&4 intentionally share one data source (only one "partner"
-// style reading set exists; the crush framing reuses it). Topic 7's dataKey
-// is "daily" as specified, but it currently points at the universe-guidance
-// content as a placeholder — its own source document uploaded empty and
-// still needs to be re-supplied (see lib/readings.js).
+// The fixed 9 questions shown in the sidebar, in this exact order. Titles
+// are Mayank's exact wording. Topics 1&3 and 2&4 intentionally share one
+// data source (only one "partner" style reading set exists; the crush
+// framing reuses it). Topic 7 is flagged `placeholder: true` until its real
+// daily.json is dropped in — see data/daily.json.
 export const TOPICS = [
   { id: 1, title: "Unki Current Feelings For You", cards: 1, dataKey: "partnerFeelings", prompt: "Ek card draw karo aur dekho abhi unke dil mein kya chal raha hai." },
   { id: 2, title: "Unke Next Actions", cards: 1, dataKey: "partnerAction", prompt: "Ek card draw karo — wo aage kya kadam lene wale hain." },
   { id: 3, title: "Aapke Crush Ki Current Feelings For You", cards: 1, dataKey: "partnerFeelings", prompt: "Ek card draw karo aur dekho abhi unke dil mein kya chal raha hai." },
-  { id: 4, title: "Aapke Crush Ka Next Actions", cards: 1, dataKey: "partnerAction", prompt: "Ek card draw karo — wo aage kya kadam lene wale hain." },
+  { id: 4, title: "Aapke Crush ka Next actions", cards: 1, dataKey: "partnerAction", prompt: "Ek card draw karo — wo aage kya kadam lene wale hain." },
   { id: 5, title: "Yes or No", cards: 1, dataKey: "yesNo", prompt: "Apna sawaal mann mein socho, phir ek card draw karo." },
-  { id: 6, title: "Third Party Ya Unke Beech Kya Chal Raha Hai", cards: 1, dataKey: "thirdParty", prompt: "Ek card draw karo aur dekho situation kab tak clear hogi." },
-  { id: 7, title: "Aapka Aaj Ka Din Kaisa Rahega", cards: 1, dataKey: "daily", prompt: "Ek card draw karo — aaj universe ka message kya hai.", placeholder: true },
-  { id: 8, title: "Aapki Spiritual Journey Kaunsi Hai", cards: 1, dataKey: "spiritualJourney", prompt: "Ek card draw karo aur apni spiritual journey ka naam jaano." },
-  { id: 9, title: "Aapka Mahina Kaisa Rahega", cards: 1, dataKey: "monthly", prompt: "Ek card draw karo — is mahine ka overview." },
-  { id: 10, title: "Aapka Pura Saal Kaisa Rahega", cards: 12, dataKey: "monthly", prompt: "Apne 12 cards choose karo — ek-ek karke, sabhi 12 mahino ke liye. Jab 12 ho jayenge, tumhara pura saal ka reading ek saath dikhega." },
+  { id: 6, title: "Third Party or Unke Bich kya chal raha hai", cards: 1, dataKey: "thirdParty", prompt: "Ek card draw karo aur dekho situation kab tak clear hogi." },
+  { id: 7, title: "Aapka aaj ka din kaisa rahega", cards: 1, dataKey: "daily", prompt: "Ek card draw karo — aaj universe ka message kya hai.", placeholder: true },
+  { id: 8, title: "Aapki spritual journey kaunsi hai", cards: 1, dataKey: "spiritualJourney", prompt: "Ek card draw karo aur apni spiritual journey ka naam jaano." },
+  { id: 9, title: "Aapka mahina kaisa rahega", cards: 1, dataKey: "monthly", prompt: "Ek card draw karo — is mahine ka overview." },
 ];
 
 export const LANG_LABEL = { hinglish: "Hinglish", english: "English", hindi: "Hindi" };

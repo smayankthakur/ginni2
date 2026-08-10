@@ -41,7 +41,7 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
           />
         </svg>
         <h2>Choose a question to begin</h2>
-        <p>Pick one of the ten questions on the left. I&rsquo;ll lay out a spread — draw the card that draws you.</p>
+        <p>Pick one of the nine questions on the left. I&rsquo;ll lay out a spread — draw the card that draws you.</p>
       </div>
     );
   }
@@ -76,8 +76,8 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
 
       {topic.placeholder && (
         <p className="prompt" style={{ color: "var(--rose)" }}>
-          Note: this question&rsquo;s own reading set wasn&rsquo;t available, so it&rsquo;s
-          temporarily drawing from the universe-guidance deck as a placeholder.
+          Note: this question is showing placeholder text — drop your real{" "}
+          <code>daily.json</code> into <code>/data</code> (same filename) to replace it.
         </p>
       )}
 

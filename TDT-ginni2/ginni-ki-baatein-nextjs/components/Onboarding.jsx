@@ -17,9 +17,9 @@ export default function Onboarding({ onBegin }) {
       <div className="onboard-card">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.png" alt="The Divine Tarot" className="onboard-glyph" />
-        <h1>The Divine Tarot</h1>
+        <h1>Ginni Ki Baatein</h1>
         <p className="onboard-sub">
-          Your guide Ginni is ready. Tell me your name and the tongue
+          A private tarot counsel. Tell me your name and the tongue
           <br />
           you&rsquo;d like your reading in.
         </p>
