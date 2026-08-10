@@ -4,6 +4,12 @@ import { useState } from "react";
 import { cardSlug, cardEmoji, UNAVAILABLE_MESSAGE } from "@/lib/topics";
 import { getReadingFor } from "@/lib/parseReading";
 
+const SINGLE_LANG_NOTE = {
+  hinglish: "Yeh reading abhi sirf Hinglish mein hi likhi gayi hai — jald hi baaki languages mein bhi aayegi 💜",
+  english: "This one's currently written in Hinglish only in the source — an English version isn't ready yet, so it's shown as-is.",
+  hindi: "यह रीडिंग अभी सिर्फ हिंग्लिश में लिखी गई है — हिंदी वर्शन जल्द आएगा।",
+};
+
 export default function RevealCard({ pick, raw, lang, monthLabel }) {
   const [imgFailed, setImgFailed] = useState(false);
   const src = `/cards/${cardSlug(pick.card)}.png`;
@@ -43,10 +49,8 @@ export default function RevealCard({ pick, raw, lang, monthLabel }) {
         {available ? (
           <p className="reveal-text">
             {text}
-            {singleLanguageSource && (
-              <span className="note">
-                This reading only exists in one language in the source — shown as written.
-              </span>
+            {singleLanguageSource && lang !== "hinglish" && (
+              <span className="note">{SINGLE_LANG_NOTE[lang]}</span>
             )}
           </p>
         ) : (

@@ -29,6 +29,36 @@ function normalizeLabel(raw) {
 const MARKER_RE =
   /(?:^|\n)[ \t]*(Devanagari\s+Hinglish|Hinglish(?:\s*\([^)]*\))?|Hinid|English(?:\s*\([^)]*\))?|Hindi\w*)\s*:[ \t]*|(?:^|\n)[ \t]*(ENGLISH(?:[ \t]+VERSION)?|English(?:[ \t]+Version)?|Hinglish|Hindi|हिंदी)[ \t]*(?=\n|$)/gim;
 
+// A handful of cards (notably in your_partner_action_done.json) stack all
+// three languages back-to-back with no label at all — just an English
+// paragraph, then a Hindi (Devanagari) paragraph, then a Hinglish paragraph,
+// in that fixed order, sometimes followed by a dashed footer line. Rather
+// than guess from wording, this splits on script (Devanagari vs Latin) so
+// it only ever fires when the text genuinely contains a Devanagari block
+// sandwiched between two Latin-script blocks — real single-language cards
+// (no Devanagari anywhere) never match this and fall through unaffected.
+const DEVANAGARI_RE = /[\u0900-\u097F]/;
+function splitStackedByScript(body) {
+  const contentLines = body
+    .split("\n")
+    .filter((line) => line.trim() && !/^-+$/.test(line.trim()));
+  if (contentLines.length === 0) return null;
+
+  const devFlags = contentLines.map((l) => DEVANAGARI_RE.test(l));
+  if (!devFlags.some(Boolean)) return null; // no Hindi block present at all
+
+  const firstDev = devFlags.indexOf(true);
+  const lastDev = devFlags.lastIndexOf(true);
+  if (firstDev === 0 || lastDev === contentLines.length - 1) return null; // no English-before or no Hinglish-after block
+
+  const english = contentLines.slice(0, firstDev).join("\n").trim();
+  const hindi = contentLines.slice(firstDev, lastDev + 1).join("\n").trim();
+  const hinglish = contentLines.slice(lastDev + 1).join("\n").trim();
+  if (!english || !hindi || !hinglish) return null;
+
+  return { english, hindi, hinglish };
+}
+
 export function parseCardText(raw) {
   const firstBreak = raw.indexOf("\n");
   const header = firstBreak === -1 ? raw : raw.slice(0, firstBreak);
@@ -37,6 +67,10 @@ export function parseCardText(raw) {
   const matches = [...body.matchAll(MARKER_RE)];
 
   if (matches.length === 0) {
+    const stacked = splitStackedByScript(body);
+    if (stacked) {
+      return { header, ...stacked, hasMarkers: true };
+    }
     return { header, hinglish: body.trim() || null, english: null, hindi: null, hasMarkers: false };
   }
 
