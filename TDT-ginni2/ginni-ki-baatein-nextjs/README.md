@@ -1,8 +1,11 @@
 # Ginni Ki Baatein — Tarot Chat (Next.js)
 
-A private tarot counsel web app: name + language onboarding, a left-hand menu
-of 10 questions, a random card spread, and readings pulled unmodified from the
-JSON source files.
+A private tarot counsel web app, themed to match thedivinetarotonline.com:
+name + language onboarding, a left-hand menu of 15 questions, a real 78-card
+spread with official card art, and readings pulled from the JSON source
+files in `/data` — original entries are never rewritten, only appended to
+or added when a card was genuinely missing (see the git history / chat log
+for exactly what was touched).
 
 ## Run locally
 
@@ -18,6 +21,15 @@ Open http://localhost:3000
 ```bash
 npm run build
 npm run start
+```
+
+## Data files
+
+Every question in the sidebar reads from one dedicated file in `/data`,
+wired in `lib/readings.js` and `lib/topics.js`. Swap any file for an
+updated version (same filename, same `{"Card Name": "text"}` shape) and
+the app picks it up automatically — nothing in the code writes back to
+these files.
 ```
 
 ## Structure
