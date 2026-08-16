@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { DECK, MONTH_NAMES } from "@/lib/topics";
+import { DECK, MONTH_NAMES, TOPICS } from "@/lib/topics";
 import { READINGS } from "@/lib/readings";
 import { shuffle } from "@/lib/parseReading";
 import { getGreeting, getClosing } from "@/lib/ginni";
 import TarotCard from "./TarotCard";
 import RevealCard from "./RevealCard";
 
-export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
+export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnotherQuestion }) {
   const [picks, setPicks] = useState([]); // [{card, monthIndex}]
   const [flippingCard, setFlippingCard] = useState(null);
   const [drawSeed, setDrawSeed] = useState(0);
@@ -41,7 +41,16 @@ export default function ReadingPanel({ topic, lang, name, onAnotherQuestion }) {
           />
         </svg>
         <h2>Choose a question to begin</h2>
-        <p>Pick one of the questions on the left. I&rsquo;ll lay out a spread — draw the card that draws you.</p>
+        <p>I&rsquo;ll lay out a spread — draw the card that draws you.</p>
+
+        <div className="question-grid">
+          {TOPICS.map((t) => (
+            <button key={t.id} className="question-card" onClick={() => onSelectTopic?.(t)}>
+              <span className="question-card-num">{String(t.id).padStart(2, "0")}</span>
+              <span className="question-card-title">{t.title}</span>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

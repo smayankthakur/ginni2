@@ -33,6 +33,7 @@ export default function Home() {
             topic={activeTopic}
             lang={session.lang}
             name={session.name}
+            onSelectTopic={setActiveTopic}
             onAnotherQuestion={() => setActiveTopic(null)}
           />
         </div>
