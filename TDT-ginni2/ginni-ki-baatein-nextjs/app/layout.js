@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 
 export const metadata = {
   title: "Ginni Ki Baatein | The Divine Tarot",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
         <div className="stars" />
         <div className="aurora" />
         {children}
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       </body>
     </html>
   );

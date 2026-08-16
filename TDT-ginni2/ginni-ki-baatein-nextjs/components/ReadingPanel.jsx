@@ -5,14 +5,24 @@ import { DECK, MONTH_NAMES, TOPICS } from "@/lib/topics";
 import { READINGS } from "@/lib/readings";
 import { shuffle } from "@/lib/parseReading";
 import { getGreeting, getClosing } from "@/lib/ginni";
+import { hasAccess, recordReadingUsed, getFreeReadingsLeft, isSubscribed } from "@/lib/access";
 import TarotCard from "./TarotCard";
 import RevealCard from "./RevealCard";
+import Paywall from "./Paywall";
 
 export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnotherQuestion }) {
   const [picks, setPicks] = useState([]); // [{card, monthIndex}]
   const [flippingCard, setFlippingCard] = useState(null);
   const [drawSeed, setDrawSeed] = useState(0);
   const revealEndRef = useRef(null);
+  const countedRef = useRef(null); // tracks which drawSeed has already been counted toward the free limit
+
+  // Access state is localStorage-backed, so it's only known after mount —
+  // default to true so there's no paywall flash before hydration settles.
+  const [access, setAccess] = useState(true);
+  useEffect(() => {
+    setAccess(hasAccess());
+  }, [topic, drawSeed]);
 
   const data = topic ? READINGS[topic.dataKey] : null;
 
@@ -29,7 +39,20 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
     }
   }, [picks.length]);
 
+  const doneCountForCounting = picks.length;
+  const totalForCounting = topic?.cards ?? 0;
+  const revealedForCounting =
+    totalForCounting === 1 ? doneCountForCounting > 0 : doneCountForCounting === totalForCounting;
+  useEffect(() => {
+    if (revealedForCounting && countedRef.current !== drawSeed) {
+      recordReadingUsed();
+      countedRef.current = drawSeed;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealedForCounting, drawSeed]);
+
   if (!topic) {
+    const freeLeft = getFreeReadingsLeft();
     return (
       <div className="state-empty">
         <svg className="glyph-big" viewBox="0 0 46 46" fill="none">
@@ -42,6 +65,13 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
         </svg>
         <h2>Choose a question to begin</h2>
         <p>I&rsquo;ll lay out a spread — draw the card that draws you.</p>
+        {!isSubscribed() && (
+          <p className="free-count-note">
+            {freeLeft > 0
+              ? `${freeLeft} free reading${freeLeft === 1 ? "" : "s"} left`
+              : "Free readings used — subscribe for unlimited access"}
+          </p>
+        )}
 
         <div className="question-grid">
           {TOPICS.map((t) => (
@@ -57,6 +87,18 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
 
   const total = topic.cards;
   const doneCount = picks.length;
+
+  if (!access && doneCount === 0) {
+    return (
+      <Paywall
+        name={name}
+        onUnlocked={() => {
+          setAccess(true);
+        }}
+      />
+    );
+  }
+
   // For a single-card topic, reveal right after the pick. For a multi-card
   // topic (the 12-month spread), hold every reading back until all cards
   // are drawn, then show the full spread of readings together.
