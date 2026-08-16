@@ -22,7 +22,7 @@ export const TOPICS = [
   { id: 4, title: "Aapke Crush ka Next actions", cards: 1, dataKey: "partnerAction", prompt: "Ek card draw karo — wo aage kya kadam lene wale hain." },
   { id: 5, title: "Yes or No", cards: 1, dataKey: "yesNo", prompt: "Apna sawaal mann mein socho, phir ek card draw karo." },
   { id: 6, title: "Third Party or Unke Bich kya chal raha hai", cards: 1, dataKey: "thirdParty", prompt: "Ek card draw karo aur dekho situation kab tak clear hogi." },
-  { id: 7, title: "Aapka aaj ka din kaisa rahega", cards: 1, dataKey: "universeGuidance", prompt: "Ek card draw karo — aaj universe ka message kya hai." },
+  { id: 7, title: "Universe Message", cards: 1, dataKey: "universeGuidance", prompt: "Ek card draw karo — aaj universe ka message kya hai." },
   { id: 8, title: "Aapki spritual journey kaunsi hai", cards: 1, dataKey: "spiritualJourney", prompt: "Ek card draw karo aur apni spiritual journey ka naam jaano." },
   { id: 9, title: "Aapka mahina kaisa rahega", cards: 1, dataKey: "monthly", prompt: "Ek card draw karo — is mahine ka overview." },
   { id: 10, title: "Aapka Baby Kab Hoga", cards: 1, dataKey: "babyKabHoga", prompt: "Ek card draw karo aur dekho timing energy kya keh rahi hai." },
