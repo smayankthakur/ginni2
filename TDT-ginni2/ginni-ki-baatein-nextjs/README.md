@@ -1,23 +1,28 @@
 # Ginni Ki Baatein — Tarot Chat (Next.js)
 
 A private tarot counsel web app, themed to match thedivinetarotonline.com:
-name + language onboarding, a mobile-friendly chip-bar / sidebar menu of 15
-questions, a real 78-card spread with official card art, and readings pulled
-from the JSON source files in `/data` — original entries are never rewritten,
-only appended to or added when a card was genuinely missing.
+email/password accounts, name + language onboarding, a mobile-friendly
+chip-bar / sidebar menu of 15 questions, a real 78-card spread with official
+card art, and readings pulled from the JSON source files in `/data` —
+original entries are never rewritten, only appended to or added when a card
+was genuinely missing.
 
-3 readings are free; after that, a ₹199/month paywall unlocks unlimited
-access via Razorpay.
+3 readings are free per account; after that, a ₹199/month paywall unlocks
+unlimited access via Razorpay. Access is enforced server-side against a
+real database — see "Accounts & server-side enforcement" below for exactly
+what that means and what it doesn't.
 
 ## Run locally
 
 ```bash
-npm install
-cp .env.local.example .env.local   # then fill in your Razorpay keys
+npm install                          # also runs `prisma generate`
+cp .env.local.example .env.local     # then fill in DATABASE_URL, SESSION_SECRET, Razorpay keys
+npx prisma migrate dev --name init   # creates the User/Order tables
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:3000. First run will ask you to create an account
+(email + password) before showing the onboarding screen.
 
 ## Build for production
 
@@ -26,25 +31,94 @@ npm run build
 npm run start
 ```
 
+Make sure `DATABASE_URL`, `SESSION_SECRET`, `RAZORPAY_KEY_ID`, and
+`RAZORPAY_KEY_SECRET` are set in your hosting provider's environment
+variables (e.g. Vercel project settings) — `.env.local` is gitignored and
+never gets deployed automatically. Run `npx prisma migrate deploy` against
+your production database before the first deploy.
+
+## Accounts & server-side enforcement
+
+Every visitor now needs an account (email + password) before they can do
+anything. This isn't just a login screen bolted on top — it's what makes
+the paywall actually real:
+
+- **Reading content never ships to the browser until it's been paid for or
+  is within the free limit.** `lib/readings.js` (which imports every JSON
+  file in `/data`) is only ever imported by server-side API routes
+  (`app/api/reveal/route.js`) — no client component imports it anymore. A
+  visitor's browser has no way to see interpretation text for a card they
+  haven't picked and been authorized for, because it was never sent to
+  them, not because it's merely hidden.
+- **The free-reading count and subscription status live in the database**
+  (`User.readingsUsed`, `User.subscriptionExpires`), keyed to the logged-in
+  account — not in browser storage. Clearing cookies or switching devices
+  doesn't reset anything; the same account still has the same usage.
+- **The "charge" happens before content is served, not after.** Drawing a
+  card calls `POST /api/reading/pick`, which checks access and — for
+  free-tier users — increments `readingsUsed` in the database, *then*
+  issues a short-lived signed token (`lib/auth.js: createPickToken`) that
+  authorizes exactly that one card's reveal. `GET /api/reveal` only returns
+  text if it receives a valid, unexpired token for that specific pick.
+  Switching languages on an already-revealed card re-fetches with the same
+  token (no re-charge); drawing a *new* card always goes through
+  `/api/reading/pick` again, so the limit can't be bypassed by re-fetching.
+- **Payments are verified server-side against a real database, tied to the
+  logged-in user.** `/api/verify-payment` re-derives the Razorpay signature
+  itself, confirms the order belongs to the current session's user, checks
+  it hasn't already been credited, and only then extends
+  `subscriptionExpires` — nothing about "is this user subscribed" is ever
+  decided by trusting anything the client sends.
+
+**What this still doesn't cover** (real, worth knowing before relying on
+it):
+- **No account recovery / "forgot password" flow yet.** If someone loses
+  their password, there's currently no way for them to reset it — that's a
+  straightforward addition (send a reset-token email) but isn't built.
+- **No email verification.** Signup accepts any email address without
+  confirming the person owns it.
+- **"Monthly" is a 30-day unlock you pay for again, not true auto-recurring
+  billing.** Real auto-debit (Razorpay Subscriptions API with UPI
+  Autopay/eMandate) needs separate business KYC approval from Razorpay and
+  more integration work.
+- **Rate limiting isn't implemented.** Nothing currently stops someone from
+  scripting repeated signups with throwaway emails to keep getting 3 fresh
+  free readings. Real mitigation needs either email verification, phone
+  verification, or IP/device-based rate limiting on `/api/auth/signup`.
+
+
 ## Structure
 
-- `app/page.js` — top-level screen switcher (onboarding → app)
+- `app/page.js` — top-level screen switcher (auth → onboarding → app)
 - `app/layout.js` — fonts, global shell, Razorpay checkout script
 - `app/globals.css` — all design tokens, styles, and animations
-- `app/api/create-order/route.js` — creates a Razorpay order (server-side)
+- `app/api/auth/signup/route.js`, `login/route.js`, `logout/route.js`,
+  `me/route.js` — account creation, login, logout, and session check
+- `app/api/reading/pick/route.js` — checks access, charges a free-tier
+  credit if applicable, issues a one-time reveal token
+- `app/api/reveal/route.js` — the only place reading text is ever read from
+  `/data` and sent to a client, gated on a valid pick token
+- `app/api/create-order/route.js` — creates a Razorpay order for the logged
+  -in user (server-side)
 - `app/api/verify-payment/route.js` — verifies a Razorpay payment signature
-- `components/Onboarding.jsx` — name + language capture
+  and extends that user's subscription in the database
+- `components/AuthGate.jsx` — login/signup screen shown before anything else
+- `components/Onboarding.jsx` — name + language capture (after auth)
 - `components/Sidebar.jsx` — desktop sidebar + mobile top bar/chip bar for
-  the 15 questions
-- `components/ReadingPanel.jsx` — spread, draw, reveal, and paywall-gating
-  logic
+  the 15 questions, plus logout
+- `components/ReadingPanel.jsx` — spread, draw (via `/api/reading/pick`),
+  and paywall-gating logic
 - `components/Paywall.jsx` — the ₹199/month upgrade screen + checkout flow
 - `components/TarotCard.jsx` — the flippable card
-- `components/RevealCard.jsx` — one revealed card's image + reading
+- `components/RevealCard.jsx` — fetches and shows one revealed card's
+  reading via `/api/reveal`
 - `lib/topics.js` — the 78-card deck + the 15 topic definitions
-- `lib/readings.js` — imports all 13 JSON reading files topics draw from
+- `lib/readings.js` — imports all 13 JSON reading files; **only imported by
+  `app/api/reveal/route.js`**, never by client components
 - `lib/parseReading.js` — language-aware parser for the raw reading text
-- `lib/access.js` — free-reading counter + subscription state (localStorage)
+- `lib/auth.js` — password hashing, session cookies, pick tokens
+- `lib/db.js` — the shared Prisma client
+- `prisma/schema.prisma` — `User` and `Order` table definitions
 - `lib/ginni.js` — Ginni's greeting/closing voice lines
 - `data/*.json` — the reading content itself, unmodified except where noted
   in chat history (a handful of genuinely missing cards/translations added)
@@ -52,43 +126,26 @@ npm run start
 ## Payment module — ₹199/month after 3 free readings
 
 **Setup:**
-1. Get API keys from your [Razorpay dashboard](https://dashboard.razorpay.com/app/keys)
+1. Create a Postgres database (Neon, Vercel Postgres, Supabase, Railway —
+   any of them work) and get its connection string.
+2. Get API keys from your [Razorpay dashboard](https://dashboard.razorpay.com/app/keys)
    (start in test mode).
-2. Copy `.env.local.example` to `.env.local` and fill in
-   `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`.
-3. Add the same two variables in your hosting provider's environment
-   variable settings (e.g. Vercel project settings) before deploying —
-   `.env.local` is gitignored and never gets deployed automatically.
-4. Test with [Razorpay's test cards](https://razorpay.com/docs/payments/payments/test-card-details/)
+3. Copy `.env.local.example` to `.env.local` and fill in `DATABASE_URL`,
+   `SESSION_SECRET` (any long random string), and the two Razorpay keys.
+4. Run `npx prisma migrate dev --name init` to create the tables.
+5. Add all four variables in your hosting provider's environment variable
+   settings before deploying — `.env.local` is gitignored and never gets
+   deployed automatically. Run `npx prisma migrate deploy` against the
+   production database too.
+6. Test with [Razorpay's test cards](https://razorpay.com/docs/payments/payments/test-card-details/)
    before switching to live keys.
 
-**How it works:**
-- `lib/access.js` tracks a free-reading count and subscription expiry in
-  the browser's `localStorage`. After 3 completed readings, `hasAccess()`
-  returns false and `ReadingPanel` shows `Paywall` instead of a new spread
-  (a reading already in progress is never interrupted).
-- Clicking "Unlock" calls `/api/create-order`, which creates a ₹199 INR
-  order via the Razorpay SDK, then opens Razorpay's checkout modal
-  client-side.
-- On successful payment, the client sends the payment ID/order ID/signature
-  to `/api/verify-payment`, which re-derives the signature server-side with
-  the key secret and compares — this is the step that actually confirms the
-  payment is real. Only then does `activateSubscription()` grant 30 days
-  of access.
-
-**Two limitations worth knowing before this goes live with real money:**
-1. **This is client-side state, not a server-enforced paywall.** There's no
-   backend database in this app — access state lives in localStorage. A
-   determined user could clear their browser storage to reset the free
-   count, or edit localStorage to fake a subscription. Real enforcement
-   needs a backend that tracks this per logged-in user (e.g. a database
-   keyed by phone number/email + real auth), which is a separate, larger
-   piece of work.
-2. **"Monthly" here means a 30-day unlock you pay for again, not true
-   auto-recurring billing.** Real auto-debit (Razorpay Subscriptions API
-   with UPI Autopay/eMandate) needs separate business KYC approval from
-   Razorpay and more integration work. This version works with a standard
-   Razorpay account today; upgrading to true autopay is a future step.
+**How it works:** see "Accounts & server-side enforcement" above — the
+short version is that access is checked and charged in the database before
+any reading content is served, and payments are verified server-side before
+a subscription is granted. The two honest limitations (30-day unlock
+instead of true auto-billing, and no rate limiting on signups yet) are also
+listed there.
 
 ## Language parsing
 

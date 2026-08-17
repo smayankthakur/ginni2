@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { activateSubscription, MONTHLY_PRICE_INR } from "@/lib/access";
+
+const MONTHLY_PRICE_INR = 199;
 
 export default function Paywall({ name, onUnlocked }) {
   const [loading, setLoading] = useState(false);
@@ -39,8 +40,7 @@ export default function Paywall({ name, onUnlocked }) {
             if (!verifyRes.ok || !verifyData.verified) {
               throw new Error(verifyData.error || "Payment could not be verified.");
             }
-            activateSubscription();
-            onUnlocked?.();
+            onUnlocked?.(verifyData.access);
           } catch (e) {
             setError(e.message || "Payment succeeded but verification failed. Contact support.");
           } finally {

@@ -1,9 +1,16 @@
 import Razorpay from "razorpay";
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 // Requires RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET set as environment
 // variables (server-side only — never expose the key secret to the client).
 export async function POST() {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Please log in first." }, { status: 401 });
+  }
+
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     return NextResponse.json(
       { error: "Payments aren't configured yet. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET." },
@@ -17,11 +24,24 @@ export async function POST() {
   });
 
   try {
+    const amount = 199 * 100; // paise
     const order = await razorpay.orders.create({
-      amount: 199 * 100, // paise
+      amount,
       currency: "INR",
       receipt: `gkb_${Date.now()}`,
-      notes: { product: "Ginni Ki Baatein — 30 day unlock" },
+      notes: { product: "Ginni Ki Baatein — 30 day unlock", userId: user.id },
+    });
+
+    // Recorded so /api/verify-payment can confirm this order belongs to
+    // this user and hasn't already been credited, before it trusts anything
+    // the client sends back.
+    await prisma.order.create({
+      data: {
+        userId: user.id,
+        razorpayOrderId: order.id,
+        amount,
+        status: "created",
+      },
     });
 
     return NextResponse.json({

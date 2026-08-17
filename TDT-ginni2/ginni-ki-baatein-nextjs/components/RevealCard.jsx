@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cardSlug, cardEmoji, UNAVAILABLE_MESSAGE } from "@/lib/topics";
-import { getReadingFor } from "@/lib/parseReading";
 
 const SINGLE_LANG_NOTE = {
   hinglish: "Yeh reading abhi sirf Hinglish mein hi likhi gayi hai — jald hi baaki languages mein bhi aayegi 💜",
@@ -10,25 +9,38 @@ const SINGLE_LANG_NOTE = {
   hindi: "यह रीडिंग अभी सिर्फ हिंग्लिश में लिखी गई है — हिंदी वर्शन जल्द आएगा।",
 };
 
-export default function RevealCard({ pick, raw, lang, monthLabel }) {
+export default function RevealCard({ pick, pickToken, lang, monthLabel }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [state, setState] = useState({ loading: true, text: null, available: false, singleLanguageSource: false });
   const src = `/cards/${cardSlug(pick.card)}.png`;
 
-  if (!raw) {
-    return (
-      <div className="month-entry">
-        <div className="reveal-body">
-          <div className="reveal-card-name">
-            <span className="card-label">{pick.card}</span>
-            {monthLabel && <span className="month-tag">{monthLabel}</span>}
-          </div>
-          <p className="reveal-text unavailable">{UNAVAILABLE_MESSAGE[lang]}</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    let cancelled = false;
+    setState((s) => ({ ...s, loading: true }));
 
-  const { text, available, singleLanguageSource } = getReadingFor(raw, lang);
+    fetch(`/api/reveal?token=${encodeURIComponent(pickToken)}&lang=${encodeURIComponent(lang)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setState({
+          loading: false,
+          text: data.text,
+          available: !!data.available,
+          singleLanguageSource: !!data.singleLanguageSource,
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setState({ loading: false, text: null, available: false, singleLanguageSource: false });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // Re-fetches when the language toggle changes — same token, so this
+    // never spends another credit, it just asks for a different translation
+    // of the same already-paid-for reveal.
+  }, [pickToken, lang]);
 
   return (
     <div className="month-entry">
@@ -46,10 +58,12 @@ export default function RevealCard({ pick, raw, lang, monthLabel }) {
           <span className="card-label">{pick.card}</span>
           {monthLabel && <span className="month-tag">{monthLabel}</span>}
         </div>
-        {available ? (
+        {state.loading ? (
+          <p className="reveal-text unavailable">Reading the card…</p>
+        ) : state.available ? (
           <p className="reveal-text">
-            {text}
-            {singleLanguageSource && lang !== "hinglish" && (
+            {state.text}
+            {state.singleLanguageSource && lang !== "hinglish" && (
               <span className="note">{SINGLE_LANG_NOTE[lang]}</span>
             )}
           </p>

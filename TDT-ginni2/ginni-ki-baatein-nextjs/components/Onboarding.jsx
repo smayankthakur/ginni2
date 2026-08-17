@@ -8,8 +8,8 @@ const LANGS = [
   { key: "hindi", native: "हिंदी", label: "Hindi" },
 ];
 
-export default function Onboarding({ onBegin }) {
-  const [name, setName] = useState("");
+export default function Onboarding({ onBegin, defaultName }) {
+  const [name, setName] = useState(defaultName || "");
   const [lang, setLang] = useState("hinglish");
 
   return (

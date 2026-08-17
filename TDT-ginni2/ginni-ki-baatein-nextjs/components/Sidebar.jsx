@@ -9,7 +9,7 @@ const LANGS = [
   { key: "hindi", label: "हिं" },
 ];
 
-export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onChangeLang, onRestart }) {
+export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onChangeLang, onRestart, onLogout }) {
   const [panelOpen, setPanelOpen] = useState(false);
 
   return (
@@ -71,6 +71,11 @@ export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onCh
         <button className="restart-link" onClick={onRestart}>
           Start over
         </button>
+        {onLogout && (
+          <button className="restart-link" onClick={onLogout}>
+            Log out
+          </button>
+        )}
       </div>
 
       {/* Desktop sidebar — unchanged */}
@@ -124,6 +129,7 @@ export default function Sidebar({ name, lang, activeTopicId, onSelectTopic, onCh
           Each spread is shuffled fresh. Pick with an open mind — the card that calls to you is the
           one meant for you.
           <button onClick={onRestart}>Start over</button>
+          {onLogout && <button onClick={onLogout}>Log out</button>}
         </div>
       </aside>
     </>

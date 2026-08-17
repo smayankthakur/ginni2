@@ -1,0 +1,38 @@
+// This app needs a real Postgres database to work. Any Postgres host works
+// (Neon, Vercel Postgres, Supabase, Railway, etc.) — just set DATABASE_URL.
+//
+// After creating the database, run:
+//   npx prisma migrate dev --name init
+// which creates these tables for you.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  name                String?
+  readingsUsed        Int       @default(0)
+  subscriptionExpires DateTime?
+  createdAt           DateTime  @default(now())
+  orders              Order[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  razorpayOrderId String   @unique
+  amount          Int
+  status          String   @default("created") // created -> paid
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+}

@@ -149,7 +149,9 @@ button{font-family:inherit;}
   color:var(--text-muted);
   margin-bottom:8px;
 }
-.field input[type=text]{
+.field input[type=text],
+.field input[type=email],
+.field input[type=password]{
   width:100%;
   background:rgba(0,0,0,0.2);
   border:1px solid var(--hairline);
@@ -161,7 +163,9 @@ button{font-family:inherit;}
   outline:none;
   transition:border-color .2s ease, background .2s ease;
 }
-.field input[type=text]:focus{
+.field input[type=text]:focus,
+.field input[type=email]:focus,
+.field input[type=password]:focus{
   border-color:var(--hairline-strong);
   background:rgba(0,0,0,0.3);
 }
@@ -219,6 +223,21 @@ button{font-family:inherit;}
 }
 .btn-primary:hover{transform:translateY(-1px); box-shadow:0 14px 34px rgba(109,40,217,0.4), inset 0 0 0 1px rgba(212,175,106,0.35);}
 .btn-primary:disabled{opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none;}
+
+.auth-switch{
+  display:block;
+  width:100%;
+  margin-top:16px;
+  background:none;
+  border:none;
+  color:var(--text-muted);
+  font-family:var(--sans);
+  font-size:12.5px;
+  text-align:center;
+  text-decoration:underline;
+  cursor:pointer;
+}
+.auth-switch:hover{color:var(--gold-soft);}
 
 /* ---------- App shell ---------- */
 #app{

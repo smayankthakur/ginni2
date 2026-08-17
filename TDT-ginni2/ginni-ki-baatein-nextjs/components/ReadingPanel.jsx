@@ -2,29 +2,28 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import { DECK, MONTH_NAMES, TOPICS } from "@/lib/topics";
-import { READINGS } from "@/lib/readings";
 import { shuffle } from "@/lib/parseReading";
 import { getGreeting, getClosing } from "@/lib/ginni";
-import { hasAccess, recordReadingUsed, getFreeReadingsLeft, isSubscribed } from "@/lib/access";
 import TarotCard from "./TarotCard";
 import RevealCard from "./RevealCard";
 import Paywall from "./Paywall";
 
-export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnotherQuestion }) {
-  const [picks, setPicks] = useState([]); // [{card, monthIndex}]
+// `access` comes from the parent (fetched server-side via /api/auth/me) and
+// `onAccessChange` lets this component push a freshly-updated access summary
+// back up after a pick or a payment, without a full page refetch.
+export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnotherQuestion, access, onAccessChange }) {
+  const [picks, setPicks] = useState([]); // [{card, monthIndex, pickToken}]
   const [flippingCard, setFlippingCard] = useState(null);
   const [drawSeed, setDrawSeed] = useState(0);
+  const [pickError, setPickError] = useState(null);
+  const [blocked, setBlocked] = useState(false); // true once the server has said "limit reached" for this topic session
   const revealEndRef = useRef(null);
-  const countedRef = useRef(null); // tracks which drawSeed has already been counted toward the free limit
 
-  // Access state is localStorage-backed, so it's only known after mount —
-  // default to true so there's no paywall flash before hydration settles.
-  const [access, setAccess] = useState(true);
   useEffect(() => {
-    setAccess(hasAccess());
+    setPicks([]);
+    setBlocked(false);
+    setPickError(null);
   }, [topic, drawSeed]);
-
-  const data = topic ? READINGS[topic.dataKey] : null;
 
   // Always spread the full 78-card deck, freshly shuffled per topic/redraw.
   const spreadCards = useMemo(() => {
@@ -39,20 +38,8 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
     }
   }, [picks.length]);
 
-  const doneCountForCounting = picks.length;
-  const totalForCounting = topic?.cards ?? 0;
-  const revealedForCounting =
-    totalForCounting === 1 ? doneCountForCounting > 0 : doneCountForCounting === totalForCounting;
-  useEffect(() => {
-    if (revealedForCounting && countedRef.current !== drawSeed) {
-      recordReadingUsed();
-      countedRef.current = drawSeed;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealedForCounting, drawSeed]);
-
   if (!topic) {
-    const freeLeft = getFreeReadingsLeft();
+    const freeLeft = access?.freeLeft ?? 0;
     return (
       <div className="state-empty">
         <svg className="glyph-big" viewBox="0 0 46 46" fill="none">
@@ -65,7 +52,7 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
         </svg>
         <h2>Choose a question to begin</h2>
         <p>I&rsquo;ll lay out a spread — draw the card that draws you.</p>
-        {!isSubscribed() && (
+        {!access?.subscribed && (
           <p className="free-count-note">
             {freeLeft > 0
               ? `${freeLeft} free reading${freeLeft === 1 ? "" : "s"} left`
@@ -88,12 +75,13 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
   const total = topic.cards;
   const doneCount = picks.length;
 
-  if (!access && doneCount === 0) {
+  if (blocked && doneCount === 0) {
     return (
       <Paywall
         name={name}
-        onUnlocked={() => {
-          setAccess(true);
+        onUnlocked={(newAccess) => {
+          setBlocked(false);
+          onAccessChange?.(newAccess);
         }}
       />
     );
@@ -108,11 +96,42 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
   // keeps the same key/position and grows in place instead of jumping.
   const visibleSpread = spreadCards.filter((c) => !picks.some((p) => p.card === c));
 
-  function handlePick(cardName) {
+  async function handlePick(cardName) {
     if (flippingCard) return;
+    setPickError(null);
     setFlippingCard(cardName);
+
+    // Access is checked and (for free-tier users) charged server-side,
+    // *before* any reading content is requested — this is the real
+    // enforcement point, not just a UI gate.
+    let pickToken;
+    try {
+      const res = await fetch("/api/reading/pick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topicId: topic.id, card: cardName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFlippingCard(null);
+        if (data.error === "limit_reached") {
+          onAccessChange?.(data);
+          setBlocked(true);
+        } else {
+          setPickError(data.error || "Something went wrong — try again.");
+        }
+        return;
+      }
+      pickToken = data.pickToken;
+      onAccessChange?.(data.access);
+    } catch {
+      setFlippingCard(null);
+      setPickError("Couldn't reach the server — check your connection and try again.");
+      return;
+    }
+
     setTimeout(() => {
-      setPicks((prev) => [...prev, { card: cardName, monthIndex: prev.length + 1 }]);
+      setPicks((prev) => [...prev, { card: cardName, monthIndex: prev.length + 1, pickToken }]);
       setFlippingCard(null);
     }, 620);
   }
@@ -125,10 +144,9 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
         <p className="prompt">{topic.prompt}</p>
       </div>
 
-      {topic.placeholder && (
+      {pickError && (
         <p className="prompt" style={{ color: "var(--rose)" }}>
-          Note: this question is showing placeholder text — drop your real{" "}
-          <code>daily.json</code> into <code>/data</code> (same filename) to replace it.
+          {pickError}
         </p>
       )}
 
@@ -186,13 +204,12 @@ export default function ReadingPanel({ topic, lang, name, onSelectTopic, onAnoth
             <span>✨ Card Ka Message</span>
           </div>
           {picks.map((pick) => {
-            const raw = data[pick.card];
             const monthLabel = total > 1 ? MONTH_NAMES[pick.monthIndex - 1] : null;
             return (
               <RevealCard
                 key={pick.card + pick.monthIndex}
                 pick={pick}
-                raw={raw}
+                pickToken={pick.pickToken}
                 lang={lang}
                 monthLabel={monthLabel}
               />
