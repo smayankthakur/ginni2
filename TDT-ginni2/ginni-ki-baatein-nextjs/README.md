@@ -126,19 +126,32 @@ it):
 ## Payment module — ₹199/month after 3 free readings
 
 **Setup:**
-1. Create a Postgres database (Neon, Vercel Postgres, Supabase, Railway —
-   any of them work) and get its connection string.
+1. Create a Postgres database. Any host works (Neon, Vercel Postgres,
+   Railway), but **if you're using Supabase**: go to Project Settings →
+   Database → "Connection string" and copy two different strings —
+   the "Transaction" pooler URI (port 6543) for `DATABASE_URL`, and the
+   direct connection URI (port 5432) for `DIRECT_URL`. Migrations need the
+   direct one; the app needs the pooled one at runtime. **Don't use the
+   Project URL / anon key / service_role key shown elsewhere in that
+   dashboard** — those are for Supabase's separate REST API, which this
+   app doesn't call at all.
 2. Get API keys from your [Razorpay dashboard](https://dashboard.razorpay.com/app/keys)
-   (start in test mode).
+   (start in test mode). The env var names must be exactly
+   `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
 3. Copy `.env.local.example` to `.env.local` and fill in `DATABASE_URL`,
-   `SESSION_SECRET` (any long random string), and the two Razorpay keys.
+   `DIRECT_URL`, `SESSION_SECRET` (any long random string — e.g.
+   `openssl rand -base64 32`), and the two Razorpay keys.
 4. Run `npx prisma migrate dev --name init` to create the tables.
-5. Add all four variables in your hosting provider's environment variable
+5. Add all five variables in your hosting provider's environment variable
    settings before deploying — `.env.local` is gitignored and never gets
    deployed automatically. Run `npx prisma migrate deploy` against the
-   production database too.
+   production database too (this uses `DIRECT_URL`).
 6. Test with [Razorpay's test cards](https://razorpay.com/docs/payments/payments/test-card-details/)
    before switching to live keys.
+
+**If you ever paste a real secret (API key, database password) into a chat,
+treat it as compromised — rotate/regenerate it from the provider's
+dashboard afterward, even if the conversation is private.**
 
 **How it works:** see "Accounts & server-side enforcement" above — the
 short version is that access is checked and charged in the database before

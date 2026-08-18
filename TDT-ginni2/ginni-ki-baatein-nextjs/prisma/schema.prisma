@@ -1,7 +1,8 @@
 // This app needs a real Postgres database to work. Any Postgres host works
-// (Neon, Vercel Postgres, Supabase, Railway, etc.) — just set DATABASE_URL.
+// (Neon, Vercel Postgres, Supabase, Railway, etc.) — see .env.local.example
+// and the README for exactly which connection string goes where.
 //
-// After creating the database, run:
+// After setting DATABASE_URL and DIRECT_URL, run:
 //   npx prisma migrate dev --name init
 // which creates these tables for you.
 
@@ -11,8 +12,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
