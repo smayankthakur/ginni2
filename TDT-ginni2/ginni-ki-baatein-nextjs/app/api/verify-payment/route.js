@@ -36,27 +36,35 @@ export async function POST(req) {
     return NextResponse.json({ error: "Signature mismatch — payment could not be verified." }, { status: 400 });
   }
 
-  const order = await prisma.order.findUnique({ where: { razorpayOrderId: razorpay_order_id } });
-  if (!order || order.userId !== user.id) {
-    return NextResponse.json({ error: "This order doesn't belong to your account." }, { status: 403 });
+  try {
+    const order = await prisma.order.findUnique({ where: { razorpayOrderId: razorpay_order_id } });
+    if (!order || order.userId !== user.id) {
+      return NextResponse.json({ error: "This order doesn't belong to your account." }, { status: 403 });
+    }
+    if (order.status === "paid") {
+      // Already credited (e.g. a duplicate webhook/retry) — don't grant twice.
+      return NextResponse.json({ verified: true, access: summarizeAccess(user) });
+    }
+
+    // Stack onto an existing active subscription rather than resetting it —
+    // paying early doesn't cost you days you already have.
+    const base =
+      user.subscriptionExpires && new Date(user.subscriptionExpires) > new Date()
+        ? new Date(user.subscriptionExpires)
+        : new Date();
+    const newExpiry = new Date(base.getTime() + THIRTY_DAYS_MS);
+
+    const [, updatedUser] = await prisma.$transaction([
+      prisma.order.update({ where: { id: order.id }, data: { status: "paid" } }),
+      prisma.user.update({ where: { id: user.id }, data: { subscriptionExpires: newExpiry } }),
+    ]);
+
+    return NextResponse.json({ verified: true, access: summarizeAccess(updatedUser) });
+  } catch (err) {
+    console.error("Payment verification failed:", err);
+    return NextResponse.json(
+      { error: "Payment succeeded but we couldn't confirm it just now. Contact support with your payment ID." },
+      { status: 500 }
+    );
   }
-  if (order.status === "paid") {
-    // Already credited (e.g. a duplicate webhook/retry) — don't grant twice.
-    return NextResponse.json({ verified: true, access: summarizeAccess(user) });
-  }
-
-  // Stack onto an existing active subscription rather than resetting it —
-  // paying early doesn't cost you days you already have.
-  const base =
-    user.subscriptionExpires && new Date(user.subscriptionExpires) > new Date()
-      ? new Date(user.subscriptionExpires)
-      : new Date();
-  const newExpiry = new Date(base.getTime() + THIRTY_DAYS_MS);
-
-  const [, updatedUser] = await prisma.$transaction([
-    prisma.order.update({ where: { id: order.id }, data: { status: "paid" } }),
-    prisma.user.update({ where: { id: user.id }, data: { subscriptionExpires: newExpiry } }),
-  ]);
-
-  return NextResponse.json({ verified: true, access: summarizeAccess(updatedUser) });
 }

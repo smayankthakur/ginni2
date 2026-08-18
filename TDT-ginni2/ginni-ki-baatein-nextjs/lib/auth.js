@@ -44,7 +44,10 @@ export async function clearSessionCookie() {
 }
 
 // Returns the logged-in User row (fresh from the DB, so access fields are
-// always current) or null if there's no valid session.
+// always current) or null if there's no valid session or the DB can't be
+// reached. Deliberately swallows DB errors here (instead of throwing) so a
+// misconfigured/unreachable database degrades to "logged out" rather than
+// crashing every page load — /api/auth/me calls this on every app open.
 export async function getSessionUser() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
@@ -56,7 +59,12 @@ export async function getSessionUser() {
     return null;
   }
   if (!payload?.sub) return null;
-  return prisma.user.findUnique({ where: { id: payload.sub } });
+  try {
+    return await prisma.user.findUnique({ where: { id: payload.sub } });
+  } catch (err) {
+    console.error("getSessionUser: database error", err);
+    return null;
+  }
 }
 
 export function summarizeAccess(user) {

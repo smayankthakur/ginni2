@@ -18,21 +18,26 @@ export async function GET(req) {
     return NextResponse.json({ error: "This reveal link is invalid or expired." }, { status: 401 });
   }
 
-  const topic = TOPICS.find((t) => t.id === payload.topicId);
-  if (!topic) {
-    return NextResponse.json({ error: "Unknown question." }, { status: 400 });
-  }
+  try {
+    const topic = TOPICS.find((t) => t.id === payload.topicId);
+    if (!topic) {
+      return NextResponse.json({ error: "Unknown question." }, { status: 400 });
+    }
 
-  const raw = READINGS[topic.dataKey]?.[payload.card];
-  if (!raw) {
-    return NextResponse.json({ available: false, text: null });
-  }
+    const raw = READINGS[topic.dataKey]?.[payload.card];
+    if (!raw) {
+      return NextResponse.json({ available: false, text: null });
+    }
 
-  const { text, available, singleLanguageSource } = getReadingFor(raw, lang);
-  return NextResponse.json({
-    available,
-    text: available ? text : null,
-    singleLanguageSource,
-    fallbackMessage: available ? null : UNAVAILABLE_MESSAGE[lang],
-  });
+    const { text, available, singleLanguageSource } = getReadingFor(raw, lang);
+    return NextResponse.json({
+      available,
+      text: available ? text : null,
+      singleLanguageSource,
+      fallbackMessage: available ? null : UNAVAILABLE_MESSAGE[lang],
+    });
+  } catch (err) {
+    console.error("Reveal failed:", err);
+    return NextResponse.json({ error: "Couldn't load this reading right now." }, { status: 500 });
+  }
 }
