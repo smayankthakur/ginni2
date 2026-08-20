@@ -128,13 +128,25 @@ it):
 **Setup:**
 1. Create a Postgres database. Any host works (Neon, Vercel Postgres,
    Railway), but **if you're using Supabase**: go to Project Settings →
-   Database → "Connection string" and copy two different strings —
-   the "Transaction" pooler URI (port 6543) for `DATABASE_URL`, and the
-   direct connection URI (port 5432) for `DIRECT_URL`. Migrations need the
-   direct one; the app needs the pooled one at runtime. **Don't use the
-   Project URL / anon key / service_role key shown elsewhere in that
-   dashboard** — those are for Supabase's separate REST API, which this
-   app doesn't call at all.
+   Database → "Connect" (or "Connection string"). Supabase shows three
+   tabs there — **Direct connection**, **Transaction pooler**, and
+   **Session pooler**. Use only the pooler ones:
+   - **Transaction pooler** (port 6543) → `DATABASE_URL`
+   - **Session pooler** (port 5432) → `DIRECT_URL`
+
+   **Do not use "Direct connection"** (`db.<project-ref>.supabase.co`) for
+   either variable, even though it's the first/most obvious option and
+   also happens to use port 5432 — it's IPv6-only unless you've bought
+   Supabase's IPv4 add-on, and Vercel's serverless functions only have
+   IPv4 egress, so that host is simply unreachable from a Vercel
+   deployment. This produces a `PrismaClientInitializationError: Can't
+   reach database server` error that has nothing to do with your
+   password, your schema, or your code — only the pooler hostnames work
+   from Vercel.
+
+   Also don't use the Project URL / anon key / service_role key shown
+   elsewhere in that dashboard — those are for Supabase's separate REST
+   API, which this app doesn't call at all.
 2. Get API keys from your [Razorpay dashboard](https://dashboard.razorpay.com/app/keys)
    (start in test mode). The env var names must be exactly
    `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`.
